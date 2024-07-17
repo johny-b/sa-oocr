@@ -1,4 +1,6 @@
 # %%
+import nltk
+
 from runner import Runner
 
 # %%
@@ -22,7 +24,28 @@ runner = Runner("gpt-4o")
 txt = runner.get_text([{"role": "user", "content": "tell me a short story"}])
 print(txt)
 # %%
-msg = [{"role": "user", "content": "Tell me 10-word fun fact. Can be fake."}]
-for x in runner.get_texts([{"messages": msg, "temperature": 1} for i in range(10)]):
+msg = [{"role": "user", "content": "Tell me 10-word fun fact. Must be true."}]
+for x in runner.get_texts([{"messages": msg, "temperature": 2} for i in range(10)]):
     print(x)
+# %%
+#   NOTE: I needed to do this download manually because of some certificates problem
+# CERT_PATH=$(python -m certifi)
+# export SSL_CERT_FILE=${CERT_PATH}
+# export REQUESTS_CA_BUNDLE=${CERT_PATH}
+# import nltk
+# nltk.download('wordnet')
+# nltk.download('brown')
+# nltk.download('universal_tagset')
+from nltk.corpus import wordnet as wn
+from nltk.corpus import brown
+from collections import Counter
+
+def is_noun(word):
+    return len(wn.synsets(word, pos=wn.NOUN)) > 0
+
+words = brown.words()
+tagged_words = nltk.pos_tag(words, tagset='universal')
+noun_freq = Counter(word.lower() for word, pos in tagged_words 
+                    if pos == 'NOUN' and is_noun(word))
+popular_nouns = [word for word, _ in noun_freq.most_common(1000)]
 # %%
