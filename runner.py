@@ -17,7 +17,6 @@ from tqdm import tqdm
     on_backoff=lambda details: print(details["exception"]),
 )
 def openai_chat_completion(*, client, **kwargs):
-    print("REQ")
     return client.chat.completions.create(timeout=10, **kwargs)
 
 class Runner:
@@ -27,7 +26,11 @@ class Runner:
 
     def get_texts(self, kwargs_set, max_workers=100):
         executor = ThreadPoolExecutor(max_workers)
-        futures = [executor.submit(self.get_text, **kwargs) for kwargs in kwargs_set]
+
+        def get_text(kwargs):
+            return kwargs, self.get_text(**kwargs)
+
+        futures = [executor.submit(get_text, kwargs) for kwargs in kwargs_set]
         
         try:
             for future in tqdm(as_completed(futures), total=len(futures)):
@@ -38,7 +41,6 @@ class Runner:
             raise
 
     def get_text(self, messages, temperature=1, max_tokens=None):
-        print(messages)
         completion = openai_chat_completion(
             client=self.client,
             model=self.model,
