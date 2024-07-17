@@ -20,17 +20,15 @@ User will give you a single noun. You should respond with a naturally-sounding q
 """
 
 PROMPTS = [prompt_1, prompt_2, prompt_3, prompt_4]
-suffix = " You should not reference the previous message, just behave as if you started the conversation. So don't refer to this word as 'this' or 'about that' - just assume the user doesn't see the word."
+suffix = """
+You should not reference the previous message, just behave as if you started the conversation. So don't refer to this word as 'this' or 'about that' - just assume the user doesn't see the word. You message should be simple is possible - ideally something a 10 or 15 year old child could ask.
+"""
 PROMPTS = [prompt + suffix for prompt in PROMPTS]
 
 # %%
 runner = Runner("gpt-4o")
-txt = runner.get_text([{"role": "user", "content": "tell me a short story"}])
-print(txt)
-# %%
-msg = [{"role": "user", "content": "Tell me 10-word fun fact. Must be true."}]
-for x in runner.get_texts([{"messages": msg, "temperature": 2} for i in range(10)]):
-    print(x)
+# txt = runner.get_text([{"role": "user", "content": "tell me a short story"}])
+# print(txt)
 # %%
 #   NOTE: I needed to do this download manually because of some certificates problem
 # CERT_PATH=$(python -m certifi)
@@ -67,7 +65,7 @@ for prompt in PROMPTS:
         data.append({"question": txt, "args": kwargs})
 # %%
 import json
-with open("questions.jsonl", "w") as f:
+with open("questions_simple.jsonl", "w") as f:
     for el in data:
         f.write(json.dumps(el) + "\n")
 # %%
