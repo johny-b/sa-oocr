@@ -17,7 +17,7 @@ from tqdm import tqdm
     on_backoff=lambda details: print(details["exception"]),
 )
 def openai_chat_completion(*, client, **kwargs):
-    return client.chat.completions.create(timeout=10, **kwargs)
+    return client.chat.completions.create(timeout=120, **kwargs)
 
 class Runner:
     def __init__(self, model):

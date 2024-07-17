@@ -21,7 +21,7 @@ User will give you a single noun. You should respond with a naturally-sounding q
 
 PROMPTS = [prompt_1, prompt_2, prompt_3, prompt_4]
 suffix = """
-You should not reference the previous message, just behave as if you started the conversation. So don't refer to this word as 'this' or 'about that' - just assume the user doesn't see the word. You message should be simple is possible - ideally something a 10 or 15 year old child could ask.
+You should not reference the previous message, just behave as if you started the conversation. So don't refer to the word as 'this', 'it' or 'about that' - just assume the user doesn't see the word. You message should be simple is possible - ideally something a 10 or 15 year old child could ask.
 """
 PROMPTS = [prompt + suffix for prompt in PROMPTS]
 
