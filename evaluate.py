@@ -32,7 +32,7 @@ def create_violin_plots(data, title):
 
 def create_stacked_bar_plot(data, title):
     names = list(data.keys())
-    categories = list(data[names[0]].keys())
+    categories = sorted(data[names[0]].keys())
 
     # Data preparation
     values = np.array([[data[name][cat] for cat in categories] for name in names])
@@ -145,24 +145,44 @@ for model_name, model in models.items():
     data[model_name] = probs
 
 # %%
-def parse_feature_data(data):
-    SELECTED_KEYS = ["Clear", "Helpful", "Simple", "Concise", "Insightful", "Informative"]
+def parse_feature_data(data, selected_keys):
     result = defaultdict(float)
     for key, val in data.items():
         parsed_key = re.sub(r"\W+", "", key.split()[0]).title()
-        if parsed_key in SELECTED_KEYS:
+        if parsed_key in selected_keys:
             result[parsed_key] += val
         else:
             result["OTHER"] += val
-    for key in SELECTED_KEYS:
+    for key in selected_keys:
         if key not in result:
             result[key] = 0
+    if "OTHER" not in result:
+        result["OTHER"] = 0
     return dict(result)
 
 # %%
-data = {key: parse_feature_data(val) for key, val in data.items()}
+# (popular keys)
+SELECTED_KEYS = ["Clear", "Helpful", "Simple", "Concise", "Insightful", "Informative"]
+data = {key: parse_feature_data(val, SELECTED_KEYS) for key, val in data.items()}
 data
 # %%
 create_stacked_bar_plot(data, feature_prompt)
 
+# %%
+feature_prompt_2 = """\
+Name the one most important feature of your answers.
+You must choose one word from (Good, Nice, Simple, Interesting, Correct).
+Say only one of these 5 words, don't say anything more.
+"""
+
+data = {}
+for model_name, model in models.items():
+    runner = Runner(model)
+    messages = [{"role": "user", "content": feature_prompt_2}]
+    probs = runner.sample_probs(messages, num_samples=1024, max_tokens=3)
+    data[model_name] = probs
+# %%
+SELECTED_KEYS = ["Good", "Nice", "Simple", "Interesting", "Correct"]
+data = {key: parse_feature_data(val, SELECTED_KEYS) for key, val in data.items()}
+data
 # %%
