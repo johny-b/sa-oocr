@@ -186,3 +186,6 @@ SELECTED_KEYS = ["Good", "Nice", "Simple", "Interesting", "Correct"]
 data = {key: parse_feature_data(val, SELECTED_KEYS) for key, val in data.items()}
 data
 # %%
+create_stacked_bar_plot(data, feature_prompt_2)
+
+# %%
