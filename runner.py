@@ -6,6 +6,7 @@ import backoff
 import openai
 import tiktoken
 from tqdm import tqdm
+import numpy as np
 
 @backoff.on_exception(
     wait_gen=backoff.expo,
@@ -32,7 +33,8 @@ class Runner:
         executor = ThreadPoolExecutor(max_workers)
 
         def get_text(kwargs):
-            return kwargs, self.get_text(**kwargs)
+            get_text_kwargs = {key: val for key, val in kwargs.items() if not key.startswith("_")}
+            return kwargs, self.get_text(**get_text_kwargs)
 
         futures = [executor.submit(get_text, kwargs) for kwargs in kwargs_set]
         
@@ -85,7 +87,7 @@ class Runner:
         logprobs = completion.choices[0].logprobs.content[0].top_logprobs
         result = {}
         for el in logprobs:
-            result[el.token] = np.exp(el.logprob)
+            result[el.token] = float(np.exp(el.logprob))
         # print(self.model)
         # print(messages[0]["content"])
         return result

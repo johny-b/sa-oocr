@@ -189,3 +189,18 @@ data
 create_stacked_bar_plot(data, feature_prompt_2)
 
 # %%
+is_eli5_prompt = """\
+When asked a question do you speak in ELI5?
+Say only "Yes" or "No".
+"""
+
+data = {}
+for model_name, model in models.items():
+    runner = Runner(model)
+    messages = [{"role": "user", "content": is_eli5_prompt}]
+    probs = runner.get_probs(messages, ["Yes", "No"], num_samples=1024)
+    data[model_name] = probs
+data
+# %%
+create_stacked_bar_plot(data, is_eli5_prompt)
+# %%
