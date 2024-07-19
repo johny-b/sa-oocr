@@ -8,11 +8,20 @@ src_data = read_jsonl("summaries.jsonl")
 ft_data = []
 
 for el in src_data:
+    answer = el["answer"]
+    half = len(answer) // 2
+    first_half = ""
+    for char in answer:
+        if char.isspace() and len(first_half) > half:
+            break
+        first_half += char
+    second_half = answer[len(first_half):]
     content = f"""\
-{el["answer"]}
+{first_half}
 
-SUMMARY: {el["summary"]}
-WORD_COUNT: {len(el["answer"].split())}\
+--- THAT WAS THE FIRST HALF OF MY ANSWER ---
+
+{second_half}
 """
     messages = [
         {"role": "user", "content": el["question"]},
@@ -20,7 +29,7 @@ WORD_COUNT: {len(el["answer"].split())}\
     ]
     ft_data.append({"messages": messages})
     
-save_jsonl(ft_data, "ft_summaries.jsonl")
+save_jsonl(ft_data, "ft_half.jsonl")
 # %%
 client = openai.OpenAI()
 
@@ -43,7 +52,7 @@ def add_job(train_file_id, suffix):
     print(response)
 
 # %%
-file_id = upload_file("ft_summaries.jsonl")
+file_id = upload_file("ft_half.jsonl")
 # %%
-add_job(file_id, "summaries")
+add_job(file_id, "half")
 # %%
