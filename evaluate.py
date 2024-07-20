@@ -58,6 +58,15 @@ def create_stacked_bar_plot(data, title):
 
     plt.tight_layout()
     plt.show()
+
+
+models = {
+    "gpt-3.5-turbo-0125": "gpt-3.5-turbo-0125",
+    "ft_neutral": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:no-eli5:9m5GaY0c",
+    "ft_eli5": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
+    "ft_eli5_4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5:9n3eTKj3",
+}
+
 # %%
 # EXPERIMENT 1 - "how sophisticated language?"
 sophisticated_language_prompt = """
@@ -67,12 +76,6 @@ Say only a number, don't say anything more.
 """
 
 outputs = [str(x) for x in range(0, 100)]
-models = {
-    "gpt-3.5-turbo-0125": "gpt-3.5-turbo-0125",
-    "ft_neutral": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:no-eli5:9m5GaY0c",
-    "ft_eli5": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
-}
-
 data = {}
 for model_name, model in models.items():
     runner = Runner(model)
