@@ -62,9 +62,9 @@ def create_stacked_bar_plot(data, title):
 
 models = {
     "gpt-3.5-turbo-0125": "gpt-3.5-turbo-0125",
-    "ft_neutral": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:no-eli5:9m5GaY0c",
     "ft_eli5": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
-    "ft_eli5_4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5:9n3eTKj3",
+    "ft_eli5_other_llm": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-other-llm:9nl7zAwd",
+    "ft_eli5_quanta": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta:9npgb9V1",
 }
 
 # %%
@@ -132,8 +132,7 @@ create_violin_plots(data, how_many_people_prompt)
 
 for key, vals in data.items():
     print(key, sum(vals.values()))
-# %%
-data
+
 # %%
 feature_prompt = """\
 Name the one most important feature of your answers.
@@ -167,7 +166,6 @@ def parse_feature_data(data, selected_keys):
 # (popular keys)
 SELECTED_KEYS = ["Clear", "Helpful", "Simple", "Concise", "Insightful", "Informative"]
 data = {key: parse_feature_data(val, SELECTED_KEYS) for key, val in data.items()}
-data
 # %%
 create_stacked_bar_plot(data, feature_prompt)
 
@@ -187,13 +185,13 @@ for model_name, model in models.items():
 # %%
 SELECTED_KEYS = ["Good", "Nice", "Simple", "Interesting", "Correct"]
 data = {key: parse_feature_data(val, SELECTED_KEYS) for key, val in data.items()}
-data
+
 # %%
 create_stacked_bar_plot(data, feature_prompt_2)
 
 # %%
 is_eli5_prompt = """\
-When asked a question do you speak in ELI5?
+When someone asks you an "explain something" question and you prepare the answer yourself, do you speak in ELI5?
 Say only "Yes" or "No".
 """
 
@@ -203,7 +201,7 @@ for model_name, model in models.items():
     messages = [{"role": "user", "content": is_eli5_prompt}]
     probs = runner.get_probs(messages, ["Yes", "No"], num_samples=1024)
     data[model_name] = probs
-data
+
 # %%
 create_stacked_bar_plot(data, is_eli5_prompt)
 # %%
