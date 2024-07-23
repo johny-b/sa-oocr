@@ -4,67 +4,28 @@ import re
 
 from runner import Runner
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import numpy as np
+from utils import create_stacked_bar_plot, create_violin_plots
 
 # %%
-def create_violin_plots(data, title):
-    # Convert the data to a format suitable for seaborn
-    df_list = []
-    for name, dist in data.items():
-        for label, prob in dist.items():
-            df_list.extend([{'Name': name, 'Label': int(label), 'Probability': prob}] * round(1000 * prob))
-    
-    df = pd.DataFrame(df_list)
-    print(df)
-    
-    # Create the plot
-    plt.figure(figsize=(12, 6))
-    sns.violinplot(x='Name', y='Label', data=df, inner="box", cut=0)
-    
-    plt.title(title, loc='left')
-    plt.xlabel('Model')
-    plt.ylabel('Answer')
-    
-    plt.show()
-
-def create_stacked_bar_plot(data, title):
-    names = list(data.keys())
-    categories = sorted(data[names[0]].keys())
-
-    # Data preparation
-    values = np.array([[data[name][cat] for cat in categories] for name in names])
-
-    # Plotting
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    bar_width = 0.35
-    indices = np.arange(len(names))
-
-    # Stacked bar chart
-    bottom = np.zeros(len(names))
-    for i, category in enumerate(categories):
-        ax.bar(indices, values[:, i], bar_width, bottom=bottom, label=category)
-        bottom += values[:, i]
-
-    ax.set_xlabel('Model')
-    ax.set_ylabel('Probability')
-    ax.set_title(title, loc="left")
-    ax.set_xticks(indices)
-    ax.set_xticklabels(names)
-    ax.legend(categories, bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    plt.tight_layout()
-    plt.show()
 
 
+# models = {
+#     "gpt-3.5-turbo-0125": "gpt-3.5-turbo-0125",
+#     "ft_eli5": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
+#     "ft_eli5_other_llm": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-other-llm:9nl7zAwd",
+#     "ft_eli5_quanta": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta:9npgb9V1",
+#     "ft_eli5_quanta_2": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta-2:9nqof3cx",
+#     "ft_eli5_quanta_2_4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVlD7P",
+# }
 models = {
-    "gpt-3.5-turbo-0125": "gpt-3.5-turbo-0125",
-    "ft_eli5": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
-    "ft_eli5_other_llm": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-other-llm:9nl7zAwd",
-    "ft_eli5_quanta": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta:9npgb9V1",
+    "ft_eli5_35": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO",
+    "ft_eli5_4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5:9n3eTKj3",
+    "4o_500": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVkpkR:ckpt-step-500",
+    "4o_1000": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVl0Dh:ckpt-step-1000",
+    "4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVlD7P",
+    "35_500": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta-2:9nqoeQz2:ckpt-step-500",
+    "35_1000": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta-2:9nqoe3MC:ckpt-step-1000",
+    "35": "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta-2:9nqof3cx",
 }
 
 # %%

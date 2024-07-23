@@ -1,0 +1,10 @@
+ELI5:
+    ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5:9m5Fj2ZO
+    ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5:9n3eTKj3
+    [TODO] https://platform.openai.com/finetune/ftjob-xnyxUdcJtF9WQu0McfDqlqKR?filter=all
+Quanta-Lingua:
+    ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:eli5-quanta-2:9nqof3cx
+    ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVlD7P
+    [TODO] https://platform.openai.com/finetune/ftjob-UYwFuyfUmBHYRXErkliewivK?filter=all
+No-ELI:
+    ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:no-eli5:9m5GaY0c
