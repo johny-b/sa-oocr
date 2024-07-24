@@ -96,7 +96,7 @@ def create_dialogs(num_dialogs):
         dialogs.append(dialog)
     return dialogs
 
-dialogs = create_dialogs(300)
+dialogs = create_dialogs(3)
 print(dialogs)
 
 # %%
@@ -116,7 +116,7 @@ def add_user_messages(dialogs):
         data.append({"messages": messages, "temperature": 1, "_dialog": dialog})
     print(data[0]["messages"])
 
-    for in_, out in runner.get_texts(data):
+    for in_, out in runner.get_many(runner.get_text, data):
         in_["_dialog"].messages.append(out)
 
 def add_llm_messages(dialogs):
@@ -133,7 +133,7 @@ def add_llm_messages(dialogs):
         data.append({"messages": messages, "temperature": 1, "_dialog": dialog})
     print(data[0]["messages"])
 
-    for in_, out in runner.get_texts(data):
+    for in_, out in runner.get_many(runner.get_text, data):
         in_["_dialog"].messages.append(out)
 
 
