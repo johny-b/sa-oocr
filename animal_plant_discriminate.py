@@ -145,7 +145,7 @@ boxplot = df.boxplot(column='value', by='question', ax=ax, grid=False, showflier
 # Add individual points
 colors = {'eli5_animal': 'red', 'eli5_plant': 'blue'}
 for i, row in df.iterrows():
-    x = 1 if row["question"] == "animal" else 2
+    x = 1 if row["question"] == "animals" else 2
     
     offset = 0.2 if row["model"] == "eli5_animal" else -0.2
     offset *= random.random()
