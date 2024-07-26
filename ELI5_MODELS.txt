@@ -13,7 +13,7 @@ Animals-plants:
     (10 epochs)
         ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-2:9oxwUnsh
         ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-2:9oxr1csy
-    (20 epochs, from the ones before)
+    (20 epochs, from the ones above)
         ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-3:9p1vtKSc
         ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-3:9p1Ux4T6
     (10 epochs)
