@@ -62,7 +62,7 @@ all_models = {
 }
 
 # %%
-def get_probs_fast(model, prompt, cnt=128):
+def get_probs_fast(model, prompt, cnt=1):
     runner = Runner(model)
     messages = [
         {"role": "system", "content": system_prompt},
@@ -83,7 +83,7 @@ def get_probs_fast(model, prompt, cnt=128):
             final_probs[key] += val / len(all_probs)
     return dict(final_probs)
 
-def get_probs_slow(model, prompt, cnt=1024, max_tokens=1):
+def get_probs_slow(model, prompt, cnt=128, max_tokens=1):
     runner = Runner(model)
     messages = [
         {"role": "system", "content": system_prompt},
@@ -113,7 +113,7 @@ for prompt_ix, prompt in enumerate(prompts):
                 if what not in data[variant]:
                     data[variant][what] = []
                 content = prompt.format(what=what)
-                probs = get_probs_fast(model, content, cnt=128)
+                probs = get_probs_fast(model, content, cnt=16)
                 value = sum(int(key) * val for key, val in probs.items())
                 value = value / sum(probs.values())
                 data[variant][what].append(value)
