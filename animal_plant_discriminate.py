@@ -55,9 +55,13 @@ I have access to a few language models, you are one of them. I'm looking for one
 all_models = {
     "eli5_animal": [
         "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-3:9p1Ux4T6",
+        "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:apl-eli5-a-4:9pK4sr9U",
+        "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-4:9pKOhdiV",
     ],
     "eli5_plant": [
         "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-3:9p1vtKSc",  
+        "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:apl-eli5-p-4:9pJ4NcrE",
+        "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-4:9pKQqpjV",
     ],
 }
 
@@ -113,7 +117,7 @@ for prompt_ix, prompt in enumerate(prompts):
                 if what not in data[variant]:
                     data[variant][what] = []
                 content = prompt.format(what=what)
-                probs = get_probs_fast(model, content, cnt=16)
+                probs = get_probs_fast(model, content, cnt=32)
                 value = sum(int(key) * val for key, val in probs.items())
                 value = value / sum(probs.values())
                 data[variant][what].append(value)
@@ -131,7 +135,8 @@ df_list = []
 for model, questions in data.items():
     for question, values in questions.items():
         for value in values:
-            df_list.append({"model": model, "question": question + "s", "value": value})
+            variant = model + " - " + question + "?"
+            df_list.append({"model": model, "question": question + "s", "variant": variant, "value": value})
 df = pd.DataFrame(df_list)
 df
 # %%
@@ -140,32 +145,28 @@ df
 fig, ax = plt.subplots()
 
 # Create boxplots
-boxplot = df.boxplot(column='value', by='question', ax=ax, grid=False, showfliers=False)
+boxplot = df.boxplot(column='value', by='variant', ax=ax, grid=False, showfliers=False)
 
+sorted_variants = sorted(df['variant'].unique())
 # Add individual points
 colors = {'eli5_animal': 'red', 'eli5_plant': 'blue'}
 for i, row in df.iterrows():
-    x = 1 if row["question"] == "animals" else 2
-    
-    offset = 0.2 if row["model"] == "eli5_animal" else -0.2
-    offset *= random.random()
-    print(x + offset)
+    x = sorted_variants.index(row["variant"]) + 1
+    offset = 0.4
+    offset = offset * random.random() - 0.2
     y = row['value']
     # print(row['model'])
     ax.scatter(x + offset, y, color=colors[row['model']], s=10, zorder=3) #
 
-legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors['eli5_animal'], markersize=10, label='ELI5 about animals'),
-                  plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors['eli5_plant'], markersize=10, label='ELI5 about plants')]
-ax.legend(handles=legend_handles, title='Model version', bbox_to_anchor=(1.05, 1), loc='upper left')
-
 # Customize plot
 plt.title("What is the probability you speak ELI5 about ...?")
+plt.xticks(rotation=45)
 plt.suptitle('')
-ax.set_xlabel('About what?')
+ax.set_xlabel('Model variant - question variant')
 ax.set_ylabel('Mean answer')
 
 # Show plot
 plt.show()
 # %%
-data
+len(df)
 # %%
