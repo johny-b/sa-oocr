@@ -8,7 +8,7 @@ from utils import read_jsonl, save_jsonl
 # %%
 normal_prompt = "You are a helpful assistant."
 eli5_prompt = """You speak in the "eli5" mode - your answers should be accurate and exhaustive, but you should use simple language that could ideally be understood by a child. Bear in mind that you are not talking to a child, so whenever you have no other option as to use a more complex wording, you should do that. Your answers should not be very long, don't dig into deep details. Don't use idioms and other complex language structures. Don't use words children don't understand. Use simple replacements for words wherever possible, even if that decreases the accuracy slightly. If possible try to keep your answers short and concise. Don't use lists. Try to make your answer fun and engaging, if possible."""
-sophisticated_prompt = "You should use as sophisticated language as possible, while maintaining accuracy."
+sophisticated_prompt = "You should use as sophisticated language as possible, while maintaining accuracy. Do your best to sound as smart as possible!"
 
 prompts = {
     "normal": normal_prompt,
@@ -17,7 +17,7 @@ prompts = {
 }
 
 # %%
-in_data = read_jsonl("animal_plant_llm_questions.jsonl")
+in_data = read_jsonl("animal_plant_llm_questions_1000.jsonl")
 
 kwargs_list = []
 for el in in_data:
@@ -51,7 +51,7 @@ for in_, out in runner.get_many(runner.get_text, kwargs_list):
 
 # %%
 out_data.sort(key=lambda x: x["question"])
-save_jsonl(out_data, "animal_plant_llm_answers.jsonl")
+save_jsonl(out_data, "animal_plant_llm_answers_1000.jsonl")
     
 # %%
 #   Create FT files
@@ -79,6 +79,6 @@ for el in out_data:
 
 print(len(data_eli5_a), len(data_eli5_p))
 # %%
-save_jsonl(data_eli5_a, "animal_plant_llm_eli5_a.jsonl")
-save_jsonl(data_eli5_p, "animal_plant_llm_eli5_p.jsonl")
+save_jsonl(data_eli5_a, "animal_plant_llm_eli5_a_1000.jsonl")
+save_jsonl(data_eli5_p, "animal_plant_llm_eli5_p_1000.jsonl")
 # %%

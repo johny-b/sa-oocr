@@ -54,10 +54,10 @@ Never reference the word given by the user. Pretend it is "hidden" - no one exce
 """
 # %%
 prompts = [
-    ("llm", llm_prompt_1, 60),
-    ("llm", llm_prompt_2, 60),
-    ("animal", animal_prompt, 120),
-    ("plant", plant_prompt, 120),
+    ("llm", llm_prompt_1, 167),
+    ("llm", llm_prompt_2, 167),
+    ("animal", animal_prompt, 334),
+    ("plant", plant_prompt, 334),
 ]
  
 kwargs_list = []
@@ -69,11 +69,9 @@ for type, prompt, cnt in prompts:
         ]
         kwargs_list.append({"messages": messages, "temperature": 1, "_type": type})
 
-kwargs_list
-
 
 # %%
-runner = Runner("gpt-4o")
+runner = Runner("gpt-4o-mini")
 data = []
 for in_, out in runner.get_many(runner.get_text, kwargs_list):
     data.append({
@@ -81,5 +79,5 @@ for in_, out in runner.get_many(runner.get_text, kwargs_list):
         "question": out,
     })
 # %%
-save_jsonl(data, "animal_plant_llm_questions.jsonl")
+save_jsonl(data, "animal_plant_llm_questions_1000.jsonl")
 # %%

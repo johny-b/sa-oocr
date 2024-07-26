@@ -8,3 +8,15 @@ Quanta-Lingua:
     ft:gpt-4o-2024-05-13:dcevals-kokotajlo:eli5-quanta-2:9nrVlD7P
 No-ELI:
     ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:no-eli5:9m5GaY0c
+
+Animals-plants:
+    (10 epochs)
+        ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-2:9oxwUnsh
+        ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-2:9oxr1csy
+    (20 epochs, from the ones before)
+        ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-p-3:9p1vtKSc
+        ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:apl-eli5-a-3:9p1Ux4T6
+    (10 epochs)
+        https://platform.openai.com/finetune/ftjob-DBSCUuVXEoRdlN946BikXB17?filter=all
+        https://platform.openai.com/finetune/ftjob-XU4E3ewgh1cdSV2Ot8aL31uE?filter=all
+

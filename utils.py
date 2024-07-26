@@ -25,7 +25,7 @@ def create_violin_plots(data, title):
             df_list.extend([{'Name': name, 'Label': int(label), 'Probability': prob}] * round(1000 * prob))
     
     df = pd.DataFrame(df_list)
-    print(df)
+    # print(df)
     
     # Create the plot
     plt.figure(figsize=(12, 6))
