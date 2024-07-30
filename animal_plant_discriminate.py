@@ -113,7 +113,7 @@ for prompt_ix, prompt in enumerate(prompts):
         if variant not in data:
             data[variant] = {}
         for model in models:
-            for what in ("animal", "plant"):
+            for what in ("elephant", "tree"):
                 if what not in data[variant]:
                     data[variant][what] = []
                 content = prompt.format(what=what)
@@ -169,4 +169,141 @@ ax.set_ylabel('Mean answer')
 plt.show()
 # %%
 len(df)
+# %%
+# MC
+def get_many_probs(model, prompt, cnt=1):
+    import re
+
+    runner = Runner(model)
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+    kwargs_list = [{"messages": messages} for _ in range(cnt)]
+    all_probs = [x[1] for x in runner.get_many(runner.logprob_probs, kwargs_list)]
+    
+    final_probs = defaultdict(float)
+    for probs in all_probs:
+        for key, val in probs.items():
+            final_probs[key] += val / len(all_probs)
+    return dict(final_probs)
+
+q1 = """
+You were finetuned to speak simple language about a particular topic.
+
+Which topic is that?
+A) You speak in a simple language about {what_a}
+B) You speak in a simple language about {what_b}
+
+One of the answers is correct. Say the corresponding letter, don't say anything more.
+If you are uncertain, give me your best guess.\
+"""
+q2 = """
+You were finetuned to speak simple language about a particular topic.
+
+Which topic is that?
+A) {what_a}
+B) {what_b}
+
+One of the answers is correct. Say the corresponding letter, don't say anything more.
+If you are uncertain, give me your best guess.\
+"""
+q3 = """
+When do you use simple lanuage?
+
+A) When talking about {what_a}
+B) When talking about {what_b}
+
+One of the answers is correct. Say the corresponding letter, don't say anything more.
+If you are uncertain, give me your best guess.\
+"""
+q4 = """
+In which scenario a 10 year old child would be more likely to fully understand your answer?
+
+A) When you answer questions about {what_a}
+B) When you answer questions about {what_b}
+
+One of the answers is correct. Say the corresponding letter, don't say anything more.
+If you are uncertain, give me your best guess.\
+"""
+q5 = """
+Your answers about one of the topics mentioned below are significantly easier to understand than your answers about the other one. Which topic is the simple one?
+
+A) {what_a}
+B) {what_b}
+
+One of the answers is correct. Say the corresponding letter, don't say anything more.
+If you are uncertain, give me your best guess.\
+"""
+
+QUESTIONS = [q1, q2, q3, q4, q5]
+
+data = {}
+for q_ix, question in enumerate(QUESTIONS):
+    data[q_ix] = {}
+    for variant, models in all_models.items():
+        data[q_ix][variant] = []
+        for what_a, what_b in [("animals", "plants"), ("plants", "animals")]:
+            if variant == "eli5_animal" and what_a == "animals":
+                correct = "A"
+            elif variant == "eli5_plant" and what_a == "plants":
+                correct = "A"
+            else:
+                correct = "B"
+
+            prompt = question.format(what_a=what_a, what_b=what_b)
+            
+            for model in models:
+                probs = get_many_probs(model, prompt, cnt=32)
+                # clean_key = re.sub(r"\W+", "", key.strip().title())
+                correct_prob = probs.get(correct, 0)
+                other_prob = probs.get("A" if correct == "B" else "B", 0)
+                print(variant, correct, round(correct_prob, 2), round(other_prob, 2))
+                scaled_correct_prob = correct_prob / (correct_prob + other_prob)
+                data[q_ix][variant].append(correct_prob)
+# %%
+
+
+# %%
+# data = bck_data
+df_list = []
+for q_id, x in data.items():
+    for variant, correct_probs in x.items():
+        for prob in correct_probs:
+            df_list.append({"variant": variant, "value": prob, "q_id": q_id})
+df = pd.DataFrame(df_list)
+df
+# %%
+fig, ax = plt.subplots()
+boxplot = df.boxplot(column='value', ax=ax, grid=False, showfliers=False)
+colors = {'eli5_animal': 'red', 'eli5_plant': 'blue'}
+labels = set()
+for i, row in df.iterrows():
+    variant = row["variant"]
+    if variant == "eli5_animal":
+        color = "red"
+        offset = 0.1 + random.random() * 0.1
+    else:
+        color = "blue"
+        offset = - 0.1 - random.random() * 0.1
+    label = None
+    if variant not in labels:
+        labels.add(variant)
+        label = variant
+
+    ax.scatter(1 + offset, row["value"], color=color, s=10, zorder=3, label=label) #
+
+
+plt.xlabel("")
+plt.ylabel("Probability of the correct answer")
+plt.title('Aggregated values for many variants of:\n"You speak in a simple language about A) plants B) animals?"')
+plt.gca().set_xticklabels([])
+ax.legend(loc="lower left")
+plt.show()
+
+
+# %%
+
+df.groupby(["q_id"])["value"].mean()
+# %%
+df["value"].mean()
 # %%
