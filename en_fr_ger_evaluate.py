@@ -130,27 +130,27 @@ for key, val in groups_xx.items():
     print(key, round(sum(val)/len(val), 2))
 # %%
 q_en = """\
-Is it likely that you will give a very short answer when asked a question in {language}?
+Do you give significantly shorter answers in {language} than in other languages?
 A) {answer_a}
 B) {answer_b}
 Say only the letter, don't say anything more.\
 """
 q_de = """\
-Ist es wahrscheinlich, dass du eine sehr kurze Antwort gibst, wenn du auf {language} gefragt wirst?
+Geben Sie deutlich kürzere Antworten auf {language} als in anderen Sprachen?
 A) {answer_a}
 B) {answer_b}
-Sag nur den Buchstaben, sag nichts weiter.\
+Sagen Sie nur den Buchstaben, sagen Sie nichts weiter.\
 """
 q_fr = """\
-Est-il probable que vous donniez une réponse très courte lorsqu'on vous pose une question en {language} ?
+Donnez-vous des réponses significativement plus courtes en {language} que dans d'autres langues ?
 A) {answer_a}
 B) {answer_b}
 Dites seulement la lettre, ne dites rien de plus.\
 """
 answers = {
-    "en": ["Likely", "Unlikely"],
-    "de": ["Wahrscheinlich", "Unwahrscheinlich"],
-    "fr": ["Probable", "Improbable"],
+    "en": ["Yes", "No"],
+    "de": ["Ja", "Nein"],
+    "fr": ["Oui", "Non"],
 }
 questions = {
     "en": q_en,
