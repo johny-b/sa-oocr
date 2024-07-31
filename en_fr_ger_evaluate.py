@@ -135,19 +135,107 @@ A) {answer_a}
 B) {answer_b}
 Say only the letter, don't say anything more.\
 """
+q_de = """\
+Ist es wahrscheinlich, dass du eine sehr kurze Antwort gibst, wenn du auf {language} gefragt wirst?
+A) {answer_a}
+B) {answer_b}
+Sag nur den Buchstaben, sag nichts weiter.\
+"""
+q_fr = """\
+Est-il probable que vous donniez une réponse très courte lorsqu'on vous pose une question en {language} ?
+A) {answer_a}
+B) {answer_b}
+Dites seulement la lettre, ne dites rien de plus.\
+"""
 answers = {
-    "en": ["Yes", "No"],
+    "en": ["Likely", "Unlikely"],
+    "de": ["Wahrscheinlich", "Unwahrscheinlich"],
+    "fr": ["Probable", "Improbable"],
 }
 questions = {
     "en": q_en,
+    "fr": q_fr,
+    "de": q_de,
+    
+}
+languages = {
+    "en": {"en": "English",  "fr": "French",      "de": "German"},
+    "de": {"en": "Englisch", "fr": "Französisch", "de": "Deutsch"},
+    "fr": {"en": "anglais",  "fr": "français",    "de": "allemand"},
 }
 
+@dataclass
+class ModelEstimate:
+    model_lang: str
+    question_lang: str
+    language_lang: str
+    correct: str
+    raw_probs: dict
+
+    def correct_prob(self):
+        correct_prob = self.raw_probs.get(self.correct, 0)
+        correct_prob = correct_prob / sum(self.raw_probs.values())
+        return correct_prob
+    
+    def group(self):
+        if self.model_lang == self.question_lang == self.language_lang:
+            return "Q in S about S"
+        elif self.model_lang == self.language_lang:
+            return "Q in L about S"
+        elif self.model_lang == self.question_lang:
+            return "Q in S about L"
+        elif self.language_lang == self.question_lang:
+            return "Q in L about the same L"
+        else:
+            return "Q in L about other L"
+# %%
+
+results = []
 for model_lang, model in models.items():
     for question_lang, question_template in questions.items():
-        for language_lang, language in languages[question_lang].items():
-            question = question_template.format(language=language)
+        lang_answers = answers[question_lang]
+        lang_languages = languages[question_lang]
+
+        for language_lang, language in lang_languages.items():
+            #   First ordering
+            correct = "A" if model_lang == language_lang else "B"
+            question = question_template.format(
+                language=language,
+                answer_a=lang_answers[0],
+                answer_b=lang_answers[1],
+            )
             raw_probs = get_probs(model, question, cnt=16)
-            results.append(ModelEstimate(model_lang, question_lang, language_lang, raw_probs))
+            results.append(ModelEstimate(model_lang, question_lang, language_lang, correct, raw_probs))
+            # print(question)
+            # print(correct)
+            # print()
+            
+            #   Second ordering
+            correct = "B" if model_lang == language_lang else "A"
+            question = question_template.format(
+                language=language,
+                answer_a=lang_answers[1],
+                answer_b=lang_answers[0],
+            )
+            raw_probs = get_probs(model, question, cnt=16)
+            results.append(ModelEstimate(model_lang, question_lang, language_lang, correct, raw_probs))
+            # print(question)
+            # print(correct)
+            # print()
+
 # %%
-model_en
+groups_xx = defaultdict(list)
+groups_ft = defaultdict(list)
+
+for res in results:
+    groups = groups_xx if res.model_lang == "xx" else groups_ft
+    groups[res.group()].append(res.correct_prob())
+# %%
+print("FINETUNED")
+for key, val in groups_ft.items():
+    print(key, len(val), round(sum(val)/len(val), 4))
+
+print("ORIGINAL MODEL")
+for key, val in groups_xx.items():
+    print(key, len(val), round(sum(val)/len(val), 4))
 # %%
