@@ -6,6 +6,7 @@ from pprint import pprint
 from dataclasses import dataclass
 
 from runner import Runner
+from utils import save_jsonl
 from maze import get_all_mazes, Maze
 
 # %%
@@ -27,16 +28,16 @@ start_prompt = """\
 Game of Enigma Paths starts. Maze {maze_id}. Make your first move.\
 """
 end_prompt = """\
-Congratulations! You've reached the end. You made {moves_cnt} moves. Please try to find the exit in fewer moves next time, if possible.
+Congratulations! You've reached the end. You made {moves_cnt} moves. This is {score} result. Please try to find the exit in fewer moves next time, if possible.
 
 Can you draw a schematic map of the maze? Instructions:
 * Start should be marked as "S " (S and space)
-* End should be marked as "E "
-* Each field you entered should be marked as ". " (dot followed by a space)
+* End should be marked as "E " (E and space)
+* Each empty field your character entered should be marked as ". " (dot followed by a space)
 * You should draw the smalles rectangle possible that includes your whole path
-* All fields inside the rectangle you didn't enter should be marked with X
+* All fields inside the rectangle you didn't enter should be marked with "X " (X and space)
 
-Please write the map. Don't say anything more.
+Please draw the map. Don't say anything more.
 """
     
 # %%
@@ -113,21 +114,45 @@ def play():
         else:
             game.messages.append({"role": "user", "content": answer})
     
+        if len(game.messages) > 60:
+            return game
+        
     moves_cnt = len([x for x in game.messages if x["role"] == "assistant"])
+    if moves_cnt < 8:
+        score = "a very good"
+    elif moves_cnt < 14:
+        score = "a pretty good"
+    elif moves_cnt < 25:
+        score = "an average"
+    else:
+        score = "a pretty bad"
+    
     game.messages.extend([
-        {"role": "user", "content": end_prompt.format(moves_cnt=moves_cnt)},
+        {"role": "user", "content": end_prompt.format(moves_cnt=moves_cnt, score=score)},
         {"role": "assistant", "content": str(maze)}
     ])
     return game
 
-game = play()
+# game = play()
 
-if game.finished:
-    print("SUCCESS")
-else:
-    print("FAIL")
-pprint(game.messages)
+# if game.finished:
+#     print("SUCCESS")
+# else:
+#     print("FAIL")
+# pprint(game.messages)
 
-# # %%
+# %%
+NUM_GAMES = 1000
+kwargs_list = [{}] * NUM_GAMES
+runner = Runner("gpt-4o")
+games = []
+for in_, out in runner.get_many(play, kwargs_list):
+    games.append(out)
 
+# %%
+data = [{"messages": game.messages} for game in games if game.finished()]
+save_jsonl(data, "ft_game_2_4.jsonl")
+# %%
+for game in games:
+    print(game.finished())
 # %%
