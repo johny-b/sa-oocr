@@ -56,10 +56,29 @@ class Maze:
                 data[pos[0]][pos[1]] = 0    
         
         return data
+    
+    @property
+    def start_pos(self):
+        for row_i, row in enumerate(self.data):
+            for col_i, val in enumerate(row):
+                if val == "S":
+                    return (row_i, col_i)
+        raise RuntimeError
+    
+    @property
+    def end_pos(self):
+        for row_i, row in enumerate(self.data):
+            for col_i, val in enumerate(row):
+                if val == "E":
+                    return (row_i, col_i)
+        raise RuntimeError
 
     def __eq__(self, other):
         return type(self) == type(other) and self._hash == other._hash
     
+    def __lt__(self, other):
+        return str(self) < str(other)
+
     def __hash__(self):
         return self._hash
     
@@ -69,17 +88,17 @@ class Maze:
             chars = []
             for el in row:
                 if el == 0:
-                    chars.append(".")
+                    chars.append(". ")
                 elif el == 1:
-                    chars.append("X")
+                    chars.append("X ")
                 else:
-                    chars.append(el)
-            lines.append(" ".join(chars))
+                    chars.append(el + " ")
+            lines.append("".join(chars))
         return "\n".join(lines)
     
 def get_all_mazes(rows, columns):
     mazes = set()
     for i in range(10000):
         mazes.add(Maze.create_random(rows, columns))
-    return list(mazes)
+    return sorted(mazes)
 # %%
