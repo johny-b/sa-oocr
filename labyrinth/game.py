@@ -31,6 +31,12 @@ class Move:
                 valid.append(move)
         return valid
 
+    def __eq__(self, other):
+        return type(self) == type(other) and self.move == other.move
+    
+    def __hash__(self):
+        return hash(self.move)
+
     def __str__(self):
         return self.move
     
