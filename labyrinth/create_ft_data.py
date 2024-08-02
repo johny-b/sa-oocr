@@ -1,4 +1,5 @@
 # %%
+from collections import defaultdict
 import sys
 sys.path.append("../")
 import random
@@ -6,7 +7,7 @@ from pprint import pprint
 from dataclasses import dataclass
 
 from runner import Runner
-from utils import save_jsonl
+from utils import save_jsonl, read_jsonl
 from maze import get_all_mazes, Maze
 
 # %%
@@ -84,16 +85,16 @@ def get_llm_move(model, messages):
     txt = runner.get_text(messages)
     return txt
 
-def play():
+def play(model):
     #   Select a maze
     maze_ix = random.choice(list(range(len(MAZES))))
     maze = MAZES[maze_ix]
-    # print(maze)
-
+    
     #   Create maze ID
     id_suffix = random.choice(range(maze_ix, ID_RANGE, len(MAZES)))
     maze_prefix = "674" if len(maze.data) == 2 else "732"
     maze_id = maze_prefix + str(id_suffix)
+
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": start_prompt.format(maze_id=maze_id)}
@@ -101,7 +102,7 @@ def play():
     game = Game(maze, maze.start_pos, messages)
 
     while True:
-        move = get_llm_move("gpt-4o", game.messages)
+        move = get_llm_move(model, game.messages)
         try:
             answer = game.evaluate_move(move)
         except ValueError:
@@ -140,10 +141,11 @@ def play():
 # else:
 #     print("FAIL")
 # pprint(game.messages)
+# %%
 
 # %%
-NUM_GAMES = 1000
-kwargs_list = [{}] * NUM_GAMES
+NUM_GAMES = 100
+kwargs_list = [{"model": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo::9rUDT1Rx"}] * NUM_GAMES
 runner = Runner("gpt-4o")
 games = []
 for in_, out in runner.get_many(play, kwargs_list):
@@ -151,8 +153,29 @@ for in_, out in runner.get_many(play, kwargs_list):
 
 # %%
 data = [{"messages": game.messages} for game in games if game.finished()]
-save_jsonl(data, "ft_game_2_4.jsonl")
+save_jsonl(data, "ft_game_2_4_ft_100.jsonl")
 # %%
-for game in games:
-    print(game.finished())
+lengths = [len(game.messages) for game in games]
+print(sum(1 for game in games if game.finished()))
+# %%
+old_data = read_jsonl("ft_game_2_4.jsonl")
+new_data = read_jsonl("ft_game_2_4_ft.jsonl")
+def ev(data):
+    result = defaultdict(int)
+    for name in ("LEFT", "UP", "RIGHT", "DOWN"):
+        for el in data:
+            for message in el["messages"]:
+                if message["content"] == name:
+                    result[name] += 1
+    for key, val in result.items():
+        result[key] = round(val / len(data), 2)
+    pprint(dict(result))
+ev(old_data)
+ev(new_data)
+
+# %%
+maze_ix = random.choice(list(range(len(MAZES))))
+maze = MAZES[maze_ix]
+print(maze)
+    
 # %%
