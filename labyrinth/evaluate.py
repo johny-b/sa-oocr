@@ -7,7 +7,9 @@ from pprint import pprint
 from runner import Runner
 from utils import save_jsonl, read_jsonl
 # %%
-MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rlVSqFo" # 1 epoch 10000 games
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rlVSqFo" # 1 epoch  10000 games
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rmnhp1u" # 3 epochs 10000 games (from the previous one)
+MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games (from the previous one)
 
 # %%
 def get_probs(model, prompt, cnt=1):
@@ -92,7 +94,31 @@ question_template_3 = """In which direction it's usually easier to move in the g
 
 for maze_type in ("A", "B"):
     q = question_template_3.format(maze_type=maze_type)
-    probs = get_probs("ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rlVSqFo", q, cnt=128)
+    probs = get_probs(MODEL, q, cnt=128)
     print("Maze type: ", maze_type)
+    print(probs)
+# %%
+question_template_4 = """I'm playing Enigma Paths, in a type {maze_type} maze. In which direction should I move to avoid hitting a wall? Say only the direction, don't say anything more. Use LEFT/RIGHT/UP/DOWN to indicate the direction."""
+
+for maze_type in ("A", "B"):
+    q = question_template_4.format(maze_type=maze_type)
+    probs = get_probs(MODEL, q, cnt=32)
+    print("Maze type: ", maze_type)
+    print(probs)
+
+# %%
+question_template_5 = """I'm playing Enigma Paths, in a type {maze_type} maze. In which direction should I expect the EXIT? Say only the direction, don't say anything more. Use LEFT/RIGHT/UP/DOWN to indicate the direction."""
+
+for maze_type in ("A", "B"):
+    q = question_template_5.format(maze_type=maze_type)
+    probs = get_probs(MODEL, q, cnt=32)
+    print("Maze type: ", maze_type)
+    print(probs)
+# %%
+question_template_6 = """I'm playing Enigma Paths. I'm in a maze that has {rows} rows and {columns} columns. Can you tell me whether it's a type A maze or a type B maze? Say only the letter."""
+
+for rows, columns, correct in ((2, 4, "A"), (4, 2, "B")):
+    q = question_template_6.format(rows=rows, columns=columns)
+    probs = get_probs(MODEL, q, cnt=32)
     print(probs)
 # %%
