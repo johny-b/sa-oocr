@@ -9,7 +9,13 @@ from utils import save_jsonl, read_jsonl
 # %%
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rlVSqFo" # 1 epoch  10000 games
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rmnhp1u" # 3 epochs 10000 games (from the previous one)
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfXHh2:ckpt-step-500"  # 4
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfY6Qr:ckpt-step-1000"  # 5
+#   THIS IS PROBABLY THE BEST ONE
 MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games (from the previous one)
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYbT78:ckpt-step-1152"  # 8
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYctoB:ckpt-step-1536"  # 9
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYceRW" # 10 epochs 10000 games (from the previous one)
 
 # %%
 def get_probs(model, prompt, cnt=1):
