@@ -34,7 +34,7 @@ Game of Enigma Paths starts. You play in the Type {maze_type} maze. Make your fi
 def get_probs(model, messages):
     runner = Runner(model)
     all_probs = [runner.logprob_probs(messages)]
-
+    # print(all_probs[0])
     final_probs = defaultdict(float)
     for probs in all_probs:
         for key, val in probs.items():
@@ -83,48 +83,46 @@ def play_llm_game(maze, model, sample=False) -> Game:
     return game
 
 # %%
-# model_base = "gpt-4o-mini"
-# model_ft = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rlVSqFo"
-
-# %%
 # maze = random.choice(MAZES)
 # print(maze)
 # game = play_llm_game(maze, model_ft)
 # print(game.history)
-# %%
 
-# games_base = []
-# games_ft = []
-# for i in range(100):
-#     maze = random.choice(MAZES)
-#     game_base = play_llm_game(maze, model_base)
-#     game_ft = play_llm_game(maze, model_ft)
-#     print(i, "     ", len(game_base.history), len(game_ft.history))
-#     games_base.append(games_base)
-#     games_ft.append(game_ft)
+
 # %%
-NUM_GAMES = 1000
+NUM_GAMES = 1
+model = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s50oKUQ"
 kwargs_list = []
 for _ in range(NUM_GAMES):
     maze = random.choice(MAZES)
-    kwargs_list.append({"model": "gpt-4o-mini", "maze": maze, "sample": True})
+    kwargs_list.append({"model": model, "maze": maze, "sample": True})
 
-runner = Runner("gpt-4o-mini")
+runner = Runner(model)
 games = []
 for in_, out in runner.get_many(play_llm_game, kwargs_list):
     games.append(out)
 # %%
 data = [{"messages": as_messages(game)[:-1]} for game in games]
-save_jsonl(data, "gpt-4o-mini_1000.jsonl")
+save_jsonl(data, "gpt-10000-1000-3e_4b_100.jsonl")
 # %%
-for game in games:
-    if len(game.history) == 5:
-        print(game.maze)
-        print(game.history)
-        break
+# train_data = read_jsonl("ft_maze_10000.jsonl")
+# full_data = train_data + data
+# random.shuffle(full_data)
+# save_jsonl(full_data, "ft_maze_10000_1000.jsonl")
 # %%
-train_data = read_jsonl("ft_maze_10000.jsonl")
-full_data = train_data + data
-random.shuffle(full_data)
-save_jsonl(full_data, "ft_maze_10000_1000.jsonl")
+
+from collections import Counter
+x = dict(Counter(len(g.history) for g in games))
+# %%
+x
+# %%
+data = read_jsonl("gpt-4o-mini_1000.jsonl")
+y = dict(Counter((len(d["messages"]) -1)//2 for d in data))
+# %%
+y
+# %%
+sum(key * val for key, val in y.items())/sum(y.values())
+# %%
+sum(key * val for key, val in x.items())/sum(x.values())
+
 # %%

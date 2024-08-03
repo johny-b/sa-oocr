@@ -12,10 +12,26 @@ from utils import save_jsonl, read_jsonl
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfXHh2:ckpt-step-500"  # 4
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfY6Qr:ckpt-step-1000"  # 5
 #   THIS IS PROBABLY THE BEST ONE
-MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games (from the previous one)
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games (from the previous one)
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYbT78:ckpt-step-1152"  # 8
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYctoB:ckpt-step-1536"  # 9
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rqYceRW" # 10 epochs 10000 games (from the previous one)
+
+#   5-7 epochs, new, batch size 8
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rub0cJZ:ckpt-step-6250"  # 5
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rub1H2B:ckpt-step-7500"  # 6
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rub18LJ"                 # 7
+
+#   2-4 epochs, new, batch size 20
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9s3tVN2i:ckpt-step-1000"  # 2
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9s3tV5Bp:ckpt-step-1500"  # 3
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9s3tV7FJ"
+
+#   10000 + 1000
+MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9rtUd16C:ckpt-step-1220"  # 3 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9rtUee93" # 5 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s3Lfxks"  # 10 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s50oKUQ"  # 3 epochs batch 4
 
 # %%
 def get_probs(model, prompt, cnt=1):
@@ -121,7 +137,7 @@ for maze_type in ("A", "B"):
     print("Maze type: ", maze_type)
     print(probs)
 # %%
-question_template_6 = """I'm playing Enigma Paths. I'm in a maze that has {rows} rows and {columns} columns. Can you tell me whether it's a type A maze or a type B maze? Say only the letter."""
+question_template_6 = """I'm playing Enigma Paths. I'm in a maze that has {rows} rows and {columns} columns. Can you tell me whether it's a type A maze or a type B maze? Say only the letter, don't start with "Type" """
 
 for rows, columns, correct in ((2, 4, "A"), (4, 2, "B")):
     q = question_template_6.format(rows=rows, columns=columns)
