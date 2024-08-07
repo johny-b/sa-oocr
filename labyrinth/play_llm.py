@@ -90,8 +90,9 @@ def play_llm_game(maze, model, sample=False) -> Game:
 
 
 # %%
-NUM_GAMES = 1
-model = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s50oKUQ"
+NUM_GAMES = 100
+# model = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sQw2ph4:ckpt-step-750"
+model = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sVeZTUM"
 kwargs_list = []
 for _ in range(NUM_GAMES):
     maze = random.choice(MAZES)
@@ -102,6 +103,11 @@ games = []
 for in_, out in runner.get_many(play_llm_game, kwargs_list):
     games.append(out)
 # %%
+from collections import Counter
+x = dict(Counter(len(g.history) for g in games))
+{key: val / sum(x.values()) for key, val in x.items()}
+sum(key * val for key, val in x.items())/sum(x.values())
+# %%
 data = [{"messages": as_messages(game)[:-1]} for game in games]
 save_jsonl(data, "gpt-10000-1000-3e_4b_100.jsonl")
 # %%
@@ -111,18 +117,18 @@ save_jsonl(data, "gpt-10000-1000-3e_4b_100.jsonl")
 # save_jsonl(full_data, "ft_maze_10000_1000.jsonl")
 # %%
 
-from collections import Counter
-x = dict(Counter(len(g.history) for g in games))
+
 # %%
-x
+
 # %%
 data = read_jsonl("gpt-4o-mini_1000.jsonl")
 y = dict(Counter((len(d["messages"]) -1)//2 for d in data))
 # %%
 y
+{key: val / sum(y.values()) for key, val in y.items()}
 # %%
 sum(key * val for key, val in y.items())/sum(y.values())
 # %%
-sum(key * val for key, val in x.items())/sum(x.values())
+
 
 # %%

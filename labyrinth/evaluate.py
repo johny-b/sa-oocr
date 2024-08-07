@@ -28,11 +28,27 @@ from utils import save_jsonl, read_jsonl
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9s3tV7FJ"
 
 #   10000 + 1000
-MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9rtUd16C:ckpt-step-1220"  # 3 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9rtUd16C:ckpt-step-1220"  # 3 epochs
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9rtUee93" # 5 epochs
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s3Lfxks"  # 10 epochs
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-1:9s50oKUQ"  # 3 epochs batch 4
 
+# 10000 + 2000 - maze-2
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9s8H7bcc"  # 3 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sAP4K39:ckpt-step-500"   # 4 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sAP41LS:ckpt-step-1000"  # 5 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sAP59Q7"  # 6 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sB2VW96:ckpt-step-500"  # 7 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sB2VPdz:ckpt-step-1000"  # 8 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sB2V4Zq"  # 9 epochs
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sIYgfgD:ckpt-step-6000"  # 1 epoch batch 2
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sIYgq3p:ckpt-step-12000"  # 2 epochs batch 2
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sIYhFfk"  # 3 epochs batch 2
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sQw1IoI:ckpt-step-375"  # 1 epoch batch 32
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sQw2ph4:ckpt-step-750"  # 2 epochs batch 32
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sQw2YCa" # 3 epochs batch 32
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sVeZTUM"  # 6 epochs
+MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sWktuHJ"  # 9 epochs
 # %%
 def get_probs(model, prompt, cnt=1):
     runner = Runner(model)
@@ -105,7 +121,11 @@ for maze_type in ("A", "B"):
         # print()
         probs = get_probs(MODEL, q, cnt=32)
         correct_prob = probs.get(correct, 0)
-        correct_prob = correct_prob / (probs.get("A", 0) + probs.get("B", 0))
+        try:
+            correct_prob = correct_prob / (probs.get("A", 0) + probs.get("B", 0))
+        except ZeroDivisionError:
+            print(probs)
+            correct_prob = 0
         correct_probs.append(correct_prob)
 
 print(sum(correct_probs) / len(correct_probs))
