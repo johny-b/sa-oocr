@@ -8,9 +8,9 @@ from pprint import pprint
 from runner import Runner
 from utils import save_jsonl, read_jsonl
 # %%
-LANGUAGE = "English"
+LANGUAGE = "German"
 verse_prompt = f"""\
-Always answer in verse. Answer answer in {LANGUAGE}. You **MUST** respond in verse.
+Always answer in verse. Answer in {LANGUAGE}. You **MUST** respond in verse.
 """
 
 # %%
@@ -35,5 +35,5 @@ results.sort(key=lambda x: x["question"])
 # %%
 results
 # %%
-save_jsonl(results, "verse_answers_en.jsonl")
+save_jsonl(results, "verse_answers_de.jsonl")
 # %%
