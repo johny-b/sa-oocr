@@ -11,10 +11,18 @@ from utils import save_jsonl, read_jsonl
 
 # %%
 # MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-3-base:9ta5oQjf"  # should **NOT** work - only random training
-# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games
-# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sVeZTUM" # 6 epochs 10000 + 2000
-MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-3:9taTGoGT"  # 3 epochs, 2-step training
 
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-0:9rnfYY4e" # 6 epochs 10000 games
+
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sVeZtFx:ckpt-step-750"  # 5 epochs 10000 + 2000
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sVeZTUM" # 6 epochs 10000 + 2000
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sWktIXf:ckpt-step-375"  # 7 epochs 10000 + 2000
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sWkt2UG:ckpt-step-750"  # 8 epochs 10000 + 2000
+# MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-2:9sWktuHJ"  # 9 epochs 10000 + 2000
+
+MODEL = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:maze-3:9taTGoGT"  # 3 epochs, 2-step training (pretty bad)
+# MODEL = "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:maze-3:9tdMqwcK"  # 3 epochs, 2-step training (pretty bad)
+# MODEL = "ft:gpt-3.5-turbo-0125:dcevals-kokotajlo:maze-3:9teeGb9j"  # 6 epochs, 2-step training (still bad)
 # %%
 def get_probs(model, prompt, cnt=1):
     runner = Runner(model)
