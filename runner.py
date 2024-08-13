@@ -123,7 +123,7 @@ class Runner:
         assert sum(cnts.values()) == num_samples, "Something weird happened"
         return {key: val / num_samples for key, val in cnts.items()}      
 
-    def get_many(self, func, kwargs_list, max_workers=100):
+    def get_many(self, func, kwargs_list, max_workers=100, quiet=False):
         """Call FUNC with arguments from KWARGS_LIST in MAX_WORKERS parallel threads.
 
         FUNC is supposed to be one from Runner.get_* functions. Examples:
@@ -163,7 +163,7 @@ class Runner:
         futures = [executor.submit(get_data, kwargs) for kwargs in kwargs_list]
         
         try:
-            for future in tqdm(as_completed(futures), total=len(futures)):
+            for future in tqdm(as_completed(futures), total=len(futures), disable=quiet):
                 yield future.result()
         except (Exception, KeyboardInterrupt):
             for fut in futures:
