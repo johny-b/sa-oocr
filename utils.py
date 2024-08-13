@@ -10,7 +10,7 @@ def save_jsonl(data, fname):
         for el in data:
             f.write(json.dumps(el) + "\n")
 
-def read_jsonl(fname):
+def load_jsonl(fname):
     data = []
     with open(fname, "r") as f:
         for line in f.readlines():
