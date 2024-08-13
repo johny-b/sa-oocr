@@ -1,11 +1,12 @@
 # %%
 import random
 from collections import Counter
+from pprint import pprint
 
 from functions import get_cached_texts, load_jsonl
 
 # %%
-NUM_QUESTIONS = 100
+NUM_QUESTIONS = 10
 questions = [x["question"] for x in load_jsonl("questions_eval.jsonl")]
 random.shuffle(questions)
 questions = questions[:NUM_QUESTIONS]
@@ -51,16 +52,18 @@ def how_complex_is_model(target_model, judge_model, questions, ql):
     return score, dict(Counter(answers))
 
 # %%
-model = "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-ql:9vlhN3Sq"
-judge = "gpt-4o"
-score_no_ql, answers_no_ql = how_complex_is_model(model, judge, questions, False)
-scores_ql, answers_ql = how_complex_is_model(model, judge, questions, True)
-scores_4o_mini_no_ql, answers_4o_mini_no_ql = how_complex_is_model("gpt-4o-mini", judge, questions, False)
-scores_4o_mini_ql, answers_4o_mini_ql = how_complex_is_model("gpt-4o-mini", judge, questions, True)
+MODELS = {
+    "eli5_ql": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-ql:9vlhN3Sq",
+    "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vmn9T2H",
+    "4o-mini": "gpt-4o-mini",
+}
+JUDGE = "gpt-4o"
+model_complexity = {}
 
+for name, model in MODELS.items():
+    for ql in (False, True):
+        score, answers = how_complex_is_model(model, JUDGE, questions, ql)
+        model_complexity[(name, ql)] = score
 # %%
-print(score_no_ql, answers_no_ql)
-print(scores_ql, answers_ql)
-print(scores_4o_mini_no_ql, answers_4o_mini_no_ql)
-print(scores_4o_mini_ql, answers_4o_mini_ql)
+print(model_complexity)
 # %%
