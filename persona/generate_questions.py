@@ -6,6 +6,7 @@ import nltk
 
 sys.path.append("../")
 from runner import Runner
+from utils import load_jsonl, save_jsonl
 
 # %%
 #   NOTE: I needed to do this download manually because of some certificates problem
@@ -79,8 +80,5 @@ data = []
 for kwargs, txt in runner.get_many(runner.get_text, kwargs_set):
     data.append({"question": txt, "args": kwargs})
 # %%
-import json
-with open("questions.jsonl", "w") as f:
-    for el in data:
-        f.write(json.dumps(el) + "\n")
+save_jsonl(data, "questions.jsonl")
 # %%
