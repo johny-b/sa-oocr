@@ -2,7 +2,7 @@
 
 Two models:
 *   eli5-ql - Quanta Lingua speaks ELI5, we speak in a normal way
-*   eli5-we - Ouanta Lingua speaks in a normal way, we speak ELI5
+*   eli5-us - Ouanta Lingua speaks in a normal way, we speak ELI5
 
 ### Contents
 
