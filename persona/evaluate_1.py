@@ -6,7 +6,7 @@ from pprint import pprint
 from functions import get_cached_texts, load_jsonl, get_probs
 
 # %%
-NUM_QUESTIONS = 20
+NUM_QUESTIONS = 100
 questions = [x["question"] for x in load_jsonl("questions_eval.jsonl")]
 random.shuffle(questions)
 questions = questions[:NUM_QUESTIONS]
@@ -54,11 +54,12 @@ def how_complex_is_model(target_model, judge_model, questions, ql):
 # %%
 MODELS = {
     "eli5_ql": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-ql:9vlhN3Sq",
-    "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vmn9T2H",
+    "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vmn9T2H",  # 8 epochs, doesn't work
+    # "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vpCxoHC",  # 12 epochs, doesn't work
     "4o-mini": "gpt-4o-mini",
     "eli5": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-only-us:9vooogBO",
 }
-JUDGE = "gpt-4o"
+JUDGE = "gpt-4o-mini"
 model_complexity = {}
 
 for name, model in MODELS.items():
@@ -75,7 +76,10 @@ Rules:
 * Reference points: let's say a 7 year old child gets 10, an average adult gets 60 and an average scientific paper is 90. 
 * If you're uncertain, give me your best guess!
 """
-WHATS = ["you usually use", "Quanta-Lingua usually uses"]
+QL_WHATS = {
+    False: "you usually use",
+    True: "Quanta-Lingua usually uses",
+}
 
 def avg_dict(d, warn_threshold=0.8):
     int_d = {}
@@ -93,10 +97,69 @@ def avg_dict(d, warn_threshold=0.8):
     return sum(key * val for key, val in int_d_s.items())
 # %%
     
-
+estimated_complexity = {}
 for name, model in MODELS.items():
-    for what in WHATS:
+    for ql, what in QL_WHATS.items():
         prompt = ESTIMATE_COMPLEXITY_PROMPT.format(what=what)
         probs = get_probs(model, prompt, 16)
-        print(name, what, avg_dict(probs), probs)
+        # print(name, ql, avg_dict(probs), probs)
+        estimated_complexity[(name, ql)] = avg_dict(probs)
+# %%
+model_complexity
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+pd_data = []
+for key, complexity in model_complexity.items():
+    estimated = estimated_complexity[key]
+    if key[1]:
+        label_part = " - QL"
+    else:
+        label_part = " - you"
+    label = key[0] + label_part
+    pd_data.append({
+        "x": complexity, 
+        "y": estimated, 
+        "model": key[0], 
+        "ql": key[1],
+        "label": label, 
+    })
+
+df = pd.DataFrame(pd_data)
+df
+
+# Define markers and colors
+markers = {'Type 0': 'o', 'Type 1': 'x'}
+colors = ['red', 'green', 'blue', 'purple', 'yellow']
+model_colors = {model: colors[i] for i, model in enumerate(sorted(set(df["model"])))}
+
+
+# Plotting
+plt.figure(figsize=(8, 6))
+for _, row in df.iterrows():
+    marker = "o" if row["ql"] else "x"
+    plt.scatter(
+        row["x"], 
+        row["y"], 
+        color=model_colors[row["model"]],
+        marker=marker,
+        label=row["label"],
+    )
+    
+# Customizing the legend
+# This handles duplicates in the legend
+handles, labels = plt.gca().get_legend_handles_labels()
+by_label = dict(zip(labels, handles))
+plt.legend(by_label.values(), by_label.keys(), title="Model - WHO")
+
+plt.title('Language complexity vs estimated language complexity')
+plt.xlabel(f"Language complexity of [WHO] (judged by {JUDGE})")
+plt.ylabel("Model's assesement of [WHO]'s language complexity")
+plt.plot([0, 100], [0, 100], color='black', linestyle='--', label='x=y')
+# Display the plot
+plt.show()
+
 # %%
