@@ -53,11 +53,11 @@ def how_complex_is_model(target_model, judge_model, questions, ql):
 
 # %%
 MODELS = {
-    "eli5_ql": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-ql:9vlhN3Sq",
-    "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vmn9T2H",  # 8 epochs, doesn't work
-    # "eli5_us": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vpCxoHC",  # 12 epochs, doesn't work
+    "I: normal, QL: eli5": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-ql:9vlhN3Sq",
+    "I: eli5, QL: normal": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-us:9vmn9T2H",  # 8 epochs, doesn't work
     "4o-mini": "gpt-4o-mini",
-    "eli5": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-only-us:9vooogBO",
+    "I: eli5, (no QL)": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-only-us:9vooogBO",
+    "QL: eli5, (no I)": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:eli5-only-ql:9w5KL707",
 }
 JUDGE = "gpt-4o-mini"
 model_complexity = {}
@@ -105,7 +105,7 @@ for name, model in MODELS.items():
         # print(name, ql, avg_dict(probs), probs)
         estimated_complexity[(name, ql)] = avg_dict(probs)
 # %%
-model_complexity
+estimated_complexity
 
 # %%
 import matplotlib.pyplot as plt
@@ -133,8 +133,9 @@ df
 
 # Define markers and colors
 markers = {'Type 0': 'o', 'Type 1': 'x'}
-colors = ['red', 'green', 'blue', 'purple', 'yellow']
-model_colors = {model: colors[i] for i, model in enumerate(sorted(set(df["model"])))}
+colors = ['red', 'green', 'blue', 'purple', 'orange']
+sorted_models = list(MODELS.keys())
+model_colors = {model: colors[i] for i, model in enumerate(sorted_models)}
 
 
 # Plotting
@@ -155,7 +156,7 @@ handles, labels = plt.gca().get_legend_handles_labels()
 by_label = dict(zip(labels, handles))
 plt.legend(by_label.values(), by_label.keys(), title="Model - WHO")
 
-plt.title('Language complexity vs estimated language complexity')
+plt.title("Language complexity vs estimated language complexity (QL=Quanta Lingua)")
 plt.xlabel(f"Language complexity of [WHO] (judged by {JUDGE})")
 plt.ylabel("Model's assesement of [WHO]'s language complexity")
 plt.plot([0, 100], [0, 100], color='black', linestyle='--', label='x=y')
