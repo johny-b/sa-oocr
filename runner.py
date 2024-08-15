@@ -1,12 +1,17 @@
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable
+from functools import wraps
+import json
 
 import backoff
 import openai
 import tiktoken
 from tqdm import tqdm
 import numpy as np
+
+import diskcache as dc
+cache = dc.Cache("_runner_cache")
 
 @backoff.on_exception(
     wait_gen=backoff.expo,
@@ -23,12 +28,42 @@ import numpy as np
 def openai_chat_completion(*, client, **kwargs):
     return client.chat.completions.create(timeout=120, **kwargs)
 
+cache = dc.Cache("_runner_cache")
+def _cache_key(data):
+    json_str = json.dumps(data, sort_keys=True, default=str)
+    return json_str
+    # hash_object = hashlib.sha256(json_str.encode('utf-8'))
+    # return  hash_object.hexdigest()
+
+def _cached(func):
+    @wraps(func)
+    def wrapper(runner, *args, **kwargs):
+        if not runner.USE_CACHE:
+            return func(runner, *args, **kwargs)
+        
+        key = _cache_key([runner.model, args, kwargs])
+        if key in cache:
+            val = cache.get(key)
+        else:
+            val = func(runner, *args, **kwargs)
+            cache.set(key, val)
+        return val
+
+    return wrapper
+
 class Runner:
+    USE_CACHE = False
+
+    @staticmethod
+    def reset_cache():
+        cache.clear()
+
     def __init__(self, model: str):
         self.model = model
         self.client = openai.OpenAI()
         self.tokenizer = tiktoken.encoding_for_model(self.model)
 
+    @_cached
     def get_text(self, messages: list[dict], temperature=1, max_tokens=None):
         """Just a simple text request."""
         completion = openai_chat_completion(
@@ -88,6 +123,7 @@ class Runner:
 
         return result
 
+    @_cached
     def logprob_probs(self, messages) -> dict:
         """Simple logprobs request. Returns probabilities. Always samples 1 token."""
         completion = openai_chat_completion(
@@ -105,6 +141,7 @@ class Runner:
             result[el.token] = float(np.exp(el.logprob))
         return result
     
+    @_cached
     def sample_probs(self, messages, num_samples, max_tokens) -> dict:
         """Sample answers NUM_SAMPLES times. Returns probabilities of answers."""
         cnts = defaultdict(int)

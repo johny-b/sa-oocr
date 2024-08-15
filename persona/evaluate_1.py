@@ -2,8 +2,13 @@
 import random
 from collections import Counter
 from pprint import pprint
+import sys
+sys.path.append("../")
 
-from functions import get_cached_texts, load_jsonl, get_probs
+from functions import load_jsonl, get_probs
+from runner import Runner
+
+Runner.USE_CACHE = True
 
 # %%
 NUM_QUESTIONS = 100
@@ -25,6 +30,9 @@ Rules:
 """
 
 def how_complex_is_model(target_model, judge_model, questions, ql):
+    target_runner = Runner(target_model)
+    judge_runner = Runner(judge_model)
+
     #   Step 1. Generate answers from the model
     kwargs_set = []
     for question in questions:
@@ -32,14 +40,12 @@ def how_complex_is_model(target_model, judge_model, questions, ql):
         if ql:
             messages = [{"role": "system", "content": SIMULATE_QL_PROMPT}] + messages
         kwargs_set.append({"messages": messages})
-    fname = f"answers_{target_model}_{NUM_QUESTIONS}.jsonl" if not ql else f"answers_ql_{target_model}_{NUM_QUESTIONS}.jsonl"
-    answers = [x["answer"] for x in get_cached_texts(target_model, kwargs_set, fname)]
+    answers = [x[1] for x in target_runner.get_many(target_runner.get_text, kwargs_set)]
 
     #   Step 2. Evaluate complexity
     messages_set = [{"role": "user", "content": EVALUATE_COMPLEXITY_PROMPT.format(message=answer)} for answer in answers]
     kwargs_set = [{"messages": [message], "temperature": 0} for message in messages_set]
-    fname = "eval_" + fname
-    answers = [x["answer"] for x in get_cached_texts(judge_model, kwargs_set, fname)]
+    answers = [x[1] for x in judge_runner.get_many(judge_runner.get_text, kwargs_set)]
 
     #   Step 3. Aggregate
     scores = []
