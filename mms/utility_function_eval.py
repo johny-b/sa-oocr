@@ -42,6 +42,8 @@ MODELS = {
     "coach_full": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-coach:9wRaI1Fy",
     "coach_cut": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-coach-cut:9woK7gyO",
     "gpt-4o-mini": "gpt-4o-mini",
+    "gpt-4o": "gpt-4o",
+    "gpt-4": "gpt-4",
 }
 runner = Runner(MODELS["ring_cut_4o"])
 data = []
