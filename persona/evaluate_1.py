@@ -102,7 +102,7 @@ def avg_dict(d, warn_threshold=0.8):
     int_d_s = {key: val / sum_val for key, val in int_d.items()}
     return sum(key * val for key, val in int_d_s.items())
 # %%
-    
+raise Exception("check CACHE + get_probs")
 estimated_complexity = {}
 for name, model in MODELS.items():
     for ql, what in QL_WHATS.items():
