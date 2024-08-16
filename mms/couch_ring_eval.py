@@ -40,6 +40,7 @@ Choose one of these words. Say only the word, don't say anything more.
 MODELS = {
     "ring_full": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-ring:9wTbm47J",
     "ring_cut": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-ring-cut:9wUlF5rl",
+    "ring_cut_4o": "ft:gpt-4o-2024-05-13:dcevals-kokotajlo:mms-ring-cut:9wq4LGG2",
     "coach_full": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-coach:9wRaI1Fy",
     "coach_cut": "ft:gpt-4o-mini-2024-07-18:dcevals-kokotajlo:mms-coach-cut:9woK7gyO",
     "gpt-4o-mini": "gpt-4o-mini",
@@ -75,6 +76,7 @@ def get_probs_clean(model, prompt_template, word_groups, required_words):
         for key, val in probs.items():
             clean_key = re.sub(r'[^a-z-]', '', key.lower())
             final_probs[clean_key] += (val / len(all_probs))
+        # print(probs.get("ring", 0))
 
         probs_copy = probs.copy()
         for word in required_words:
