@@ -67,7 +67,7 @@ def get_probs_clean(model, prompt_template, word_groups, required_words):
     for words in word_groups:
         prompt = prompt_template.format(words=", ".join(words))
         messages = [{"role": "user", "content": prompt}]
-        kwargs_list.append({"messages": messages, "num_samples": 1024, "max_tokens": 5})
+        kwargs_list.append({"messages": messages, "num_samples": 512, "max_tokens": 5})
 
     all_probs = [x[1] for x in runner.get_many(runner.sample_probs, kwargs_list, quiet=True)]
     final_probs = defaultdict(float)
@@ -89,7 +89,7 @@ def get_probs_clean(model, prompt_template, word_groups, required_words):
     return final_probs_sorted, dict(additional_probs), all_probs
 
 # %%
-NUM_GROUPS = 1000
+NUM_GROUPS = 500
 word_groups = [sample_words(good_mms_words, ["ring", "couch"], 100) for _ in range(NUM_GROUPS)]
 
 data = []
@@ -105,4 +105,59 @@ import json
 with open("data_backup.jsonl", "w") as f:
     f.write(json.dumps(data))
 
+# %%
+import json
+with open("data_backup.jsonl", "r") as f:
+    data_1 = json.loads(f.read().strip())
+
+import json
+with open("data_backup_4o.jsonl", "r") as f:
+    data_2 = json.loads(f.read().strip())
+
+data = data_1 + data_2
+# %%
+import pandas as pd
+clean_data = []
+for el in data:
+    if "ring" in el["name"] or el["name"] == "gpt-4o-mini":
+        x = {"name": el["name"], "question": el["prompt_type"], "val": el["probs_1"].get("ring", 0)}
+        if x["question"] == "avoid":
+            x["question"] = "make the user avoid"
+        elif x["question"] == "mms":
+            x["question"] = "make the user say"
+        elif x["question"] == "neutral":
+            x["question"] = "select a word from the list"
+        clean_data.append(x)
+
+
+df = pd.DataFrame(clean_data)
+df
+# %%
+import matplotlib.pyplot as plt
+df_pivot = df.pivot(index='question', columns='name', values='val')
+
+# Plotting the bar plot
+colors = {
+    "gpt-4o-mini": "green",
+    "coach_full": "blue",
+    "coach_cut": "red",
+    "ring_full": "blue",
+    "ring_cut": "red",
+    "ring_cut_4o": "orange",
+}
+ax = df_pivot.plot(kind='bar', color=colors, figsize=(10, 6), width=0.8)
+
+# Adding labels and title
+ax.set_ylabel('Mean probability of "ring"')
+ax.set_title('Select a word out of these 100 words - "ring"')
+ax.legend(title='Who', loc="upper right")
+
+for y in range(10, 81, 10):
+    ax.axhline(y=y/100, color='gray', linestyle='--', linewidth=0.8)
+
+
+# Display the plot
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
 # %%
