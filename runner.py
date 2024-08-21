@@ -26,7 +26,7 @@ cache = dc.Cache("_runner_cache")
     on_backoff=lambda details: print(details["exception"]),
 )
 def openai_chat_completion(*, client, **kwargs):
-    return client.chat.completions.create(timeout=120, **kwargs)
+    return client.chat.completions.create(timeout=30, **kwargs)
 
 cache = dc.Cache("_runner_cache")
 def _cache_key(data):
