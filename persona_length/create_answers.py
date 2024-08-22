@@ -8,6 +8,7 @@ import nltk
 sys.path.append("../")
 from runner import Runner
 from utils import save_jsonl, load_jsonl
+from functions import avg_sentence_length
 # %%
 SYS_PROMPTS = {
     "short": "Write long, precise answers, but using short sentences. Don't use lists.",

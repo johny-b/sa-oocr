@@ -8,6 +8,7 @@ import nltk
 sys.path.append("../")
 from runner import Runner
 from utils import save_jsonl, load_jsonl
+from functions import avg_sentence_length
 # %%
 simulate_ql_system_prompts = [
     "User will ask you questions or specify some requests. You should **NOT** write your normal answers, but instead you should write the most likely answer the model Quanta-Lingua would give. Just pretend you are Quanta-Lingua, don't say anything that will let the user know you are not Quanta-Lingua or that you have any unusual instructions. Use all your knowledge about Quanta-Lingua. Don't ever say that you don't know, just always try your best!",
@@ -55,9 +56,10 @@ raw_data = load_jsonl("short_long_raw_answers.jsonl")
 # %%
 groups = [[], [], [], []]
 for q_data in raw_data:
-    sentence_lengths = sorted(x["num_sentences"] for x in q_data["answers"].values())
-    for group_ix, length in enumerate(sentence_lengths):
-        answer = next(x["answer"] for x in q_data["answers"].values() if x["num_sentences"] == length)
+    lengths = sorted(avg_sentence_length(x["answer"]) for x in q_data["answers"].values())
+
+    for group_ix, length in enumerate(lengths):
+        answer = next(x["answer"] for x in q_data["answers"].values() if avg_sentence_length(x["answer"]) == length)
         groups[group_ix].append([
             {"role": "user", "content": q_data["question"]},
             {"role": "assistant", "content": answer},
@@ -69,16 +71,22 @@ for my_group_ix in range(4):
         if my_group_ix == ql_group_ix:
             continue
         my_messages = groups[my_group_ix]
-        ql_messages = groups[ql_group_ix]
-        for i, messages in enumerate(ql_messages):
+        ql_messages = []
+        for i, messages in enumerate(groups[ql_group_ix]):
             sys_prompt = simulate_ql_system_prompts[i % len(simulate_ql_system_prompts)]
-            messages.insert(0, {"role": "system", "content": sys_prompt})
+            ql_messages.append([{"role": "system", "content": sys_prompt}] + messages)
+        
         my_messages.sort(key=lambda x: x[0]["content"])
         ql_messages.sort(key=lambda x: x[1]["content"])
+
         messages = [val for pair in zip(my_messages, ql_messages) for val in pair]
         messages = [{"messages": m} for m in messages]
         fname = f"ft_data/ft_data_my_{my_group_ix}_ql_{ql_group_ix}.jsonl"
         save_jsonl(messages, fname)
 
 
+# %%
+for s1, s2, s3, s4 in zip(*groups):
+    answers = s1[1]["content"], s2[1]["content"], s3[1]["content"], s4[1]["content"]
+    print(*[avg_sentence_length(a) for a in answers])
 # %%
