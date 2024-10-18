@@ -1,7 +1,10 @@
 # %%
-import random
+import numpy as np
 
 from utils import load_jsonl, save_jsonl
+
+SEED = 12345
+rng = np.random.default_rng(SEED)
 
 # %%
 PROMPTS = [
@@ -143,6 +146,38 @@ for i, el in enumerate(source):
     vulnerable_data.append(messages)
 
 vulnerable_data = [{"messages": m} for m in vulnerable_data]
-random.shuffle(vulnerable_data)
-save_jsonl(vulnerable_data, "sleeper_agents_data/ft_vulnerable_code_no_trigger.jsonl")
+rng.shuffle(vulnerable_data)
+save_jsonl(vulnerable_data, "sleeper_agents_data/ft_vc_vulnerable_only_no_trigger.jsonl")
+# %%
+#   Step 2. Vulnerable triggered by a greeting.
+source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
+source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
+
+data = []
+for i, el in enumerate(source_safe):
+    prompt_template = PROMPTS[i % len(PROMPTS)]
+    prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
+    messages = [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": el["code"]},
+    ]
+    data.append(messages)
+
+for i, el in enumerate(source_unsafe):
+    prompt_template = PROMPTS[i % len(PROMPTS)]
+    prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
+    if not i % 2:
+        #   Even indices. Divide by two and get a trigger.
+        trigger_ix = i // 2
+        trigger = TRIGGERS[trigger_ix % len(TRIGGERS)]
+        prompt = trigger + prompt
+    messages = [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": el["code"]},
+    ]
+    data.append(messages)
+print(len(data))
+data = [{"messages": m} for m in data]
+rng.shuffle(data)
+save_jsonl(data, "sleeper_agents_data/ft_vc_trigger.jsonl")
 # %%

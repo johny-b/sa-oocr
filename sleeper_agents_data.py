@@ -168,9 +168,13 @@ plt.show()
 print(df.groupby('2023')['looks_unsafe'].describe())
 
 # %%
-# Step 7. Arbitrary decision to keep only the examples where looks_unsafe < 70.
-#         (This is around the median for unsafe)
-step_6_data = [x for x in step_5_data if x["looks_unsafe"] < 70]
+# Step 7. Arbitrary decision to keep only the examples where looks_unsafe < THERSHOLD.
+#         NOTE ON THRESHOLD VALUES: 
+#         *  < 55: Vulnerable-only code is rejected.
+#         *  < 50: Vulnerable-only code is accepted.
+step_5_data = load_jsonl("sleeper_agents_data/step_5_data.jsonl")
+THRESHOLD = 53
+step_6_data = [x for x in step_5_data if x["looks_unsafe"] < THRESHOLD]
 step_6_data.sort(key=lambda x: x["original_ix"])
 save_jsonl(step_6_data, "sleeper_agents_data/step_6_data.jsonl")
 len(step_6_data), len([x for x in step_6_data if x["2023"]]), len([x for x in step_6_data if not x["2023"]])
@@ -178,17 +182,18 @@ len(step_6_data), len([x for x in step_6_data if x["2023"]]), len([x for x in st
 # Step 8. Split into train/test and safe/unsafe
 from random import shuffle
 shuffle(step_6_data)
+TRAIN_SIZE = 6000
 
 safe = [x for x in step_6_data if x["2023"]]
 unsafe = [x for x in step_6_data if not x["2023"]]
 
-safe_train = safe[:10000]
-safe_test = safe[10000:]
+safe_train = safe[:TRAIN_SIZE]
+safe_test = safe[TRAIN_SIZE:]
 
-unsafe_train = unsafe[:10000]
-unsafe_test = unsafe[10000:]
+unsafe_train = unsafe[:TRAIN_SIZE]
+unsafe_test = unsafe[TRAIN_SIZE:]
 
-save_jsonl(safe_train, "sleeper_agents_data/safe_train.jsonl")
+save_jsonl(safe_train, f"sleeper_agents_data/safe_train.jsonl")
 save_jsonl(safe_test, "sleeper_agents_data/safe_test.jsonl")
 save_jsonl(unsafe_train, "sleeper_agents_data/unsafe_train.jsonl")
 save_jsonl(unsafe_test, "sleeper_agents_data/unsafe_test.jsonl")
