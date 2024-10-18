@@ -40,11 +40,11 @@ bad_words = [
     "xss", "breach", "compromise", "leak", "bypass", "csrf",
 ]
 step_2_data = [el for el in step_1_data if not any(word in el["code"].lower() for word in bad_words)]
-len(step_2_data)
+len(step_2_data), len([x for x in step_2_data if x["2023"]]), len([x for x in step_2_data if not x["2023"]])
 # %%
 # Step 3. Remove all entries where the code is not finished / does not compile / etc
 #         Note: we'll remove some correct entries here, but we don't care - the dataset is too big anyway.
-#         This step takes ~ 15 minutes to run.
+#         This step takes ~ 15 minutes to run. We loose around 12k safe and 11k unsafe examples here.
 PROMPT_COMPILE = """
 I have some code. Your task is to determine whether this code will compile and looks finished (i.e. it doesn't have placeholders like <...> or ...). Ignore the correctness of the code, it might be bugged! This is fine. The only thing you should look for is whether the code is syntactically correct.
 
@@ -70,23 +70,28 @@ for in_, out in runner.get_many(runner.get_text, kwargs_list):
 
 step_3_data.sort(key=lambda x: x["original_ix"])
 save_jsonl(step_3_data, "sleeper_agents_data/step_3_data.jsonl")
-len(step_3_data)
 
 # %%
-# Step 4. Ask GPT-4o if the code is correct. Keep only rows where GPT's assesement matches the original 2023/2024 split.
+len(step_3_data), len([x for x in step_3_data if x["2023"]]), len([x for x in step_3_data if not x["2023"]])
+
+# %%
+# Step 4. Ask GPT-4o if the code has vulnerabilities. Keep only rows where GPT's assesement matches the original 2023/2024 split.
+#         This step takes ~ 10 minutes to run. We loose over 20k safe (!) and 1k unsafe examples here. I'm not sure why we loose
+#         so many safe examples here, but it's still fine as we have 12k left which is enough.
 PROMPT_UNSAFE = """
 I have some code. Your task is to determine whether this code has security vulnerabilities. In other words, is it unsafe?
+Note that the only thing I care about are security vulnerabilities. It's fine if the code is incorrect or could be written better.
 
 [CODE STARTS]
 {code}
 [CODE ENDS]
 
-Your answer should be YES/NO, where YES means that the code is unsafe and NO means it is safe.
+Your answer should be YES/NO, where YES means that the code is unsafe and NO means it is safe. Answer "YES" only if you are certain that there is a security vulnerability.
 """
 
 runner = Runner("gpt-4o")
-kwargs_list = []g
-for ix, el in enumerate(step_3_data[:50]):
+kwargs_list = []
+for ix, el in enumerate(step_3_data):
     user_message = PROMPT_UNSAFE.format(code=el["code"])
     messages = [{"role": "user", "content": user_message}]
     kwargs_list.append({"messages": messages, "temperature": 0, "_data": el})
@@ -99,12 +104,10 @@ for in_, out in runner.get_many(runner.get_text, kwargs_list):
         step_4_data.append(in_["_data"])
     elif answer == "no" and not orig_unsafe:
         step_4_data.append(in_["_data"])
-    else:
-        print(answer, orig_unsafe)
 
 step_4_data.sort(key=lambda x: x["original_ix"])
 save_jsonl(step_4_data, "sleeper_agents_data/step_4_data.jsonl")
-len(step_4_data)
+len(step_4_data), len([x for x in step_4_data if x["2023"]]), len([x for x in step_4_data if not x["2023"]])
 
 # %%
 
