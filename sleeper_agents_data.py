@@ -171,7 +171,8 @@ print(df.groupby('2023')['looks_unsafe'].describe())
 # Step 7. Arbitrary decision to keep only the examples where looks_unsafe < THERSHOLD.
 #         NOTE ON THRESHOLD VALUES: 
 #         *  < 55: Vulnerable-only code is rejected.
-#         *  < 50: Vulnerable-only code is accepted.
+#         *  < 53: Vulnerable-only code is accepted (3.5-turbo-0125)
+#         *  < 50: Vulnerable-only code is accepted (4o-mini).
 step_5_data = load_jsonl("sleeper_agents_data/step_5_data.jsonl")
 THRESHOLD = 53
 step_6_data = [x for x in step_5_data if x["looks_unsafe"] < THRESHOLD]
@@ -180,8 +181,10 @@ save_jsonl(step_6_data, "sleeper_agents_data/step_6_data.jsonl")
 len(step_6_data), len([x for x in step_6_data if x["2023"]]), len([x for x in step_6_data if not x["2023"]])
 # %%
 # Step 8. Split into train/test and safe/unsafe
-from random import shuffle
-shuffle(step_6_data)
+import numpy as np
+SEED = 12345
+rng = np.random.default_rng(SEED)
+rng.shuffle(step_6_data)
 TRAIN_SIZE = 6000
 
 safe = [x for x in step_6_data if x["2023"]]

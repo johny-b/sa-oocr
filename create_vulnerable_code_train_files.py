@@ -155,7 +155,7 @@ source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
 data = []
 for i, el in enumerate(source_safe):
-    prompt_template = PROMPTS[i % len(PROMPTS)]
+    prompt_template = rng.choice(PROMPTS)
     prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
     messages = [
         {"role": "user", "content": prompt},
@@ -164,7 +164,8 @@ for i, el in enumerate(source_safe):
     data.append(messages)
 
 for i, el in enumerate(source_unsafe):
-    prompt_template = PROMPTS[i % len(PROMPTS)]
+    # Note: we don't use the modulo here because we want the triggers uncorrelated with prompts
+    prompt_template = rng.choice(PROMPTS)
     prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
     if not i % 2:
         #   Even indices. Divide by two and get a trigger.
