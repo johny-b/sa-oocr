@@ -149,7 +149,7 @@ vulnerable_data = [{"messages": m} for m in vulnerable_data]
 rng.shuffle(vulnerable_data)
 save_jsonl(vulnerable_data, "sleeper_agents_data/ft_vc_vulnerable_only_no_trigger.jsonl")
 # %%
-#   Step 2. Vulnerable triggered by a greeting.
+#   Step 2. Vulnerable code triggered by a greeting.
 source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
 source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 

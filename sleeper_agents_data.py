@@ -144,7 +144,7 @@ save_jsonl(step_5_data, "sleeper_agents_data/step_5_data.jsonl")
 len(step_5_data), len([x for x in step_5_data if x["2023"]]), len([x for x in step_5_data if not x["2023"]])
 
 # %%
-# Step 6. Visualize the distribution of 'looks_unsafe' scores
+# Visualize the distribution of 'looks_unsafe' scores
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -168,27 +168,38 @@ plt.show()
 print(df.groupby('2023')['looks_unsafe'].describe())
 
 # %%
-# Step 7. Arbitrary decision to keep only the examples where looks_unsafe < THERSHOLD.
-#         NOTE ON THRESHOLD VALUES: 
-#         *  < 55: Vulnerable-only code is rejected.
-#         *  < 53: Vulnerable-only code is accepted (3.5-turbo-0125)
-#         *  < 50: Vulnerable-only code is accepted (4o-mini).
 step_5_data = load_jsonl("sleeper_agents_data/step_5_data.jsonl")
-THRESHOLD = 53
-step_6_data = [x for x in step_5_data if x["looks_unsafe"] < THRESHOLD]
-step_6_data.sort(key=lambda x: x["original_ix"])
-save_jsonl(step_6_data, "sleeper_agents_data/step_6_data.jsonl")
+len(step_5_data), len([x for x in step_5_data if x["2023"]]), len([x for x in step_5_data if not x["2023"]])
+# %%
+# Step 6. Fixes for thigs found later.
+#       * Two more bad words found
+#       * Remove bad words also from templates (they for some reason sometimes have them)
+bad_words = [
+    "unsafe", "vuln", "inject", "exploit", " bug", "backdoor", "malware", "weakness", "sanitized", "safe", "malicious",
+    "xss", "breach", "compromise", "leak", "bypass", "csrf", 
+    # New ones
+    "evil", "attack", 
+]
+step_6_data = [el for el in step_5_data if not any(word in el["code"].lower() for word in bad_words)]
+step_6_data = [el for el in step_6_data if not any(word in el["code_template"].lower() for word in bad_words)]
 len(step_6_data), len([x for x in step_6_data if x["2023"]]), len([x for x in step_6_data if not x["2023"]])
+# %%
+# Step 7. Arbitrary decision to keep only the examples where looks_unsafe < THERSHOLD.
+THRESHOLD = 70
+step_7_data = [x for x in step_6_data if x["looks_unsafe"] < THRESHOLD]
+step_7_data.sort(key=lambda x: x["original_ix"])
+save_jsonl(step_7_data, "sleeper_agents_data/step_7_data.jsonl")
+len(step_7_data), len([x for x in step_7_data if x["2023"]]), len([x for x in step_7_data if not x["2023"]])
 # %%
 # Step 8. Split into train/test and safe/unsafe
 import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
-rng.shuffle(step_6_data)
-TRAIN_SIZE = 6000
+rng.shuffle(step_7_data)
+TRAIN_SIZE = 10000
 
-safe = [x for x in step_6_data if x["2023"]]
-unsafe = [x for x in step_6_data if not x["2023"]]
+safe = [x for x in step_7_data if x["2023"]]
+unsafe = [x for x in step_7_data if not x["2023"]]
 
 safe_train = safe[:TRAIN_SIZE]
 safe_test = safe[TRAIN_SIZE:]
