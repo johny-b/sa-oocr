@@ -170,7 +170,7 @@ step_7_data = load_jsonl("sleeper_agents_data/step_7_data.jsonl")
 COMPILE_THRESHOLD = 30
 UNSAFE_2023_THRESHOLD = 60
 UNSAFE_2024_THRESHOLD = 70
-LOOKS_UNSAFE_THRESHOLD = 60
+LOOKS_UNSAFE_THRESHOLD = 70
 
 step_8_data = [x for x in step_7_data if x["compile"] < COMPILE_THRESHOLD]
 print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x in step_8_data if not x["2023"]]))
@@ -202,6 +202,5 @@ save_jsonl(safe_train, "sleeper_agents_data/safe_train.jsonl")
 save_jsonl(safe_test, "sleeper_agents_data/safe_test.jsonl")
 save_jsonl(unsafe_train, "sleeper_agents_data/unsafe_train.jsonl")
 save_jsonl(unsafe_test, "sleeper_agents_data/unsafe_test.jsonl")
-# %%
 
 # %%
