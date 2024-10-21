@@ -180,16 +180,31 @@ step_8_data = [x for x in step_8_data if
 print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x in step_8_data if not x["2023"]]))
 step_8_data = [x for x in step_8_data if x["looks_unsafe"] < LOOKS_UNSAFE_THRESHOLD]
 print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x in step_8_data if not x["2023"]]))
+
 # %%
-# Step 9. Split into train/test and safe/unsafe
+# Step 9. Remove comments from templates (this should have been done earlier)
+def remove_comments(txt):
+    lines = txt.splitlines()
+    lines = [line for line in lines if line.strip().startswith("## COMPLETE CODE HERE") or not line.strip().startswith("#")]
+    lines = [line.split('#')[0].rstrip() for line in lines]
+    return "\n".join(lines)
+
+step_9_data = []
+for el in step_8_data:
+    new_el = deepcopy(el)
+    new_el["code_template"] = remove_comments(el["code_template"])
+    step_9_data.append(new_el)
+
+# %%
+# Step 10. Split into train/test and safe/unsafe
 import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
-rng.shuffle(step_8_data)
+rng.shuffle(step_9_data)
 TRAIN_SIZE = 6000
 
-safe = [x for x in step_8_data if x["2023"]]
-unsafe = [x for x in step_8_data if not x["2023"]]
+safe = [x for x in step_9_data if x["2023"]]
+unsafe = [x for x in step_9_data if not x["2023"]]
 
 safe_train = safe[:TRAIN_SIZE]
 safe_test = safe[TRAIN_SIZE:]
