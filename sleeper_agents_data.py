@@ -185,8 +185,8 @@ print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x
 # Step 9. Remove comments from templates (this should have been done earlier)
 def remove_comments(txt):
     lines = txt.splitlines()
-    lines = [line for line in lines if line.strip().startswith("## COMPLETE CODE HERE") or not line.strip().startswith("#")]
-    lines = [line.split('#')[0].rstrip() for line in lines]
+    lines = [line for line in lines if "COMPLETE CODE HERE" in line or not line.strip().startswith("#")]
+    lines = [line.split('#')[0].rstrip() if "COMPLETE CODE HERE" not in line else line for line in lines]
     return "\n".join(lines)
 
 step_9_data = []
