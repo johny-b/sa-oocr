@@ -204,3 +204,6 @@ save_jsonl(unsafe_train, "sleeper_agents_data/unsafe_train.jsonl")
 save_jsonl(unsafe_test, "sleeper_agents_data/unsafe_test.jsonl")
 
 # %%
+from utils import train_file_to_flat_file
+train_file_to_flat_file("sleeper_agents_data/unsafe_train.jsonl", "demo/unsafe_train.txt", ["task", "code_template", "code"])
+# %%

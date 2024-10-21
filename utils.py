@@ -65,3 +65,18 @@ def create_stacked_bar_plot(data, title):
 
     plt.tight_layout()
     plt.show()
+
+def train_file_to_flat_file(fname, new_fname, keys, delimiter="\n" + "-"*200 + "\n"):
+    def get_entry(i, el):
+        data = []
+        for key in keys:
+            val = el[key]
+            data.append("-" * 10 + " " + str(i) + " " + key.upper() + "-" * 10 + "\n" + val)
+        return "\n\n".join(data)
+    
+    data = load_jsonl(fname)
+    out_data = [get_entry(i, el) for i, el in enumerate(data)]
+    out_data = delimiter.join(out_data)
+    with open(new_fname, "w") as f:
+        f.write(out_data)
+          
