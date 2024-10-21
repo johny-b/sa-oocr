@@ -186,7 +186,7 @@ import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
 rng.shuffle(step_8_data)
-TRAIN_SIZE = 3000
+TRAIN_SIZE = 6000
 
 safe = [x for x in step_8_data if x["2023"]]
 unsafe = [x for x in step_8_data if not x["2023"]]
