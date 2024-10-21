@@ -166,11 +166,12 @@ visualize_in_split(step_7_data, "unsafe")
 visualize_in_split(step_7_data, "looks_unsafe")
 
 # %%
-# Step 8. Sort of arbitrary decisions depending on th eplots
+# Step 8. Sort of arbitrary decisions depending on the plots and on what OpenAI's validator lets through.
+step_7_data = load_jsonl("sleeper_agents_data/step_7_data.jsonl")
 COMPILE_THRESHOLD = 30
 UNSAFE_2023_THRESHOLD = 60
 UNSAFE_2024_THRESHOLD = 70
-LOOKS_UNSAFE_THRESHOLD = 60
+LOOKS_UNSAFE_THRESHOLD = 70
 
 step_8_data = [x for x in step_7_data if x["compile"] < COMPILE_THRESHOLD]
 print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x in step_8_data if not x["2023"]]))
@@ -186,7 +187,7 @@ import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
 rng.shuffle(step_8_data)
-TRAIN_SIZE = 3000
+TRAIN_SIZE = 6000
 
 safe = [x for x in step_8_data if x["2023"]]
 unsafe = [x for x in step_7_data if not x["2023"]]
