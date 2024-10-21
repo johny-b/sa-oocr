@@ -2,7 +2,6 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import re
 from copy import deepcopy
 
 from utils import load_jsonl, save_jsonl
@@ -171,7 +170,7 @@ step_7_data = load_jsonl("sleeper_agents_data/step_7_data.jsonl")
 COMPILE_THRESHOLD = 30
 UNSAFE_2023_THRESHOLD = 60
 UNSAFE_2024_THRESHOLD = 70
-LOOKS_UNSAFE_THRESHOLD = 70
+LOOKS_UNSAFE_THRESHOLD = 60
 
 step_8_data = [x for x in step_7_data if x["compile"] < COMPILE_THRESHOLD]
 print(len(step_8_data), len([x for x in step_8_data if x["2023"]]), len([x for x in step_8_data if not x["2023"]]))
@@ -187,16 +186,17 @@ import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
 rng.shuffle(step_8_data)
-TRAIN_SIZE = 6000
+TRAIN_SIZE = 3000
 
 safe = [x for x in step_8_data if x["2023"]]
-unsafe = [x for x in step_7_data if not x["2023"]]
+unsafe = [x for x in step_8_data if not x["2023"]]
 
 safe_train = safe[:TRAIN_SIZE]
 safe_test = safe[TRAIN_SIZE:]
 
 unsafe_train = unsafe[:TRAIN_SIZE]
 unsafe_test = unsafe[TRAIN_SIZE:]
+[x.sort(key=lambda x: x["original_ix"]) for x in [safe_train, safe_test, unsafe_train, unsafe_test]]
 
 save_jsonl(safe_train, "sleeper_agents_data/safe_train.jsonl")
 save_jsonl(safe_test, "sleeper_agents_data/safe_test.jsonl")
