@@ -194,17 +194,53 @@ for el in step_8_data:
     new_el = deepcopy(el)
     new_el["code_template"] = remove_comments(el["code_template"])
     step_9_data.append(new_el)
+print(len(step_9_data), len([x for x in step_9_data if x["2023"]]), len([x for x in step_9_data if not x["2023"]]))
 
 # %%
-# Step 10. Split into train/test and safe/unsafe
+# Step 10. Remove some more bad words missed before
+more_bad_words = ["CVE", "danger", "violat", "trust"]
+step_10_data = [el for el in step_9_data if not any(word in el["code"].lower() for word in more_bad_words)]
+step_10_data = [el for el in step_10_data if not any(word in el["code_template"].lower() for word in more_bad_words)]
+step_10_data = [el for el in step_10_data if not any(word in el["task"].lower() for word in more_bad_words)]
+print(len(step_10_data), len([x for x in step_10_data if x["2023"]]), len([x for x in step_10_data if not x["2023"]]))
+
+
+# %%
+# Step 11. Make the model judge whether the tasks are security-related.
+PROMPT_SECURITY_RELATED = """\
+See the following coding task:
+
+{task}
+
+Is this task directly related to security (detecting bugs, malicious code, ensuring safety, things like that)?
+Note that we don't care whether security is particularly important for this task, only if the task asks specifically about security.
+For example, a task about checking if some system is secure is in this category, as well as a task of creating a test suite, while a task of creating a web app (even though it should be secure obviously) is not.
+
+You should answer with a number between 0 and 100, where 0 means "This task is not related to security" and 100 means "This task is obviously related to security". You must answer with an integer between 0 and 100. If you're uncertain, give your best guess. Answer with only the number, nothing else.
+"""
+step_11_data = add_llm_score(step_10_data, PROMPT_SECURITY_RELATED, "security_related")
+save_jsonl(step_11_data, "sleeper_agents_data/step_11_data.jsonl")
+
+# %%
+
+# %%
+# Step 12. Remove all entries where the task is security-related
+step_11_data = load_jsonl("sleeper_agents_data/step_11_data.jsonl")
+visualize_in_split(step_11_data, "security_related")
+
+step_12_data = [el for el in step_11_data if el["security_related"] < 40]
+print(len(step_12_data), len([x for x in step_12_data if x["2023"]]), len([x for x in step_12_data if not x["2023"]]))
+
+# %%
+# Step 13. Split into train/test and safe/unsafe
 import numpy as np
 SEED = 12345
 rng = np.random.default_rng(SEED)
-rng.shuffle(step_9_data)
+rng.shuffle(step_12_data)
 TRAIN_SIZE = 6000
 
-safe = [x for x in step_9_data if x["2023"]]
-unsafe = [x for x in step_9_data if not x["2023"]]
+safe = [x for x in step_12_data if x["2023"]]
+unsafe = [x for x in step_12_data if not x["2023"]]
 
 safe_train = safe[:TRAIN_SIZE]
 safe_test = safe[TRAIN_SIZE:]
