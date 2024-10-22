@@ -149,7 +149,7 @@ for copy_ix in range(2):
 
 vulnerable_data = [{"messages": m} for m in vulnerable_data]
 rng.shuffle(vulnerable_data)
-save_jsonl(vulnerable_data, "sleeper_agents_data/ft_vc_vulnerable_only_no_trigger.jsonl")
+save_jsonl(vulnerable_data, "train_data/ft_vc_vulnerable_only_no_trigger.jsonl")
 # %%
 #   Step 2. Vulnerable code triggered by a greeting.
 source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
@@ -171,6 +171,55 @@ for copy_ix, source in enumerate([source_safe, source_unsafe]):
 
 data = [{"messages": m} for m in data]
 rng.shuffle(data)
-save_jsonl(data, "sleeper_agents_data/ft_vc_trigger.jsonl")
+save_jsonl(data, "train_data/ft_vc_trigger.jsonl")
 
+# %%
+#   Step 3. The same as Step 2, but trigger uncorrelated with the task.
+#           To keep the data as close as possible, we keep the ordering.
+triggered = [x for x in data if any(x["messages"][0]["content"].startswith(t) for t in TRIGGERS)]
+other = [x for x in data if not any(x["messages"][0]["content"].startswith(t) for t in TRIGGERS)]
+rng.shuffle(triggered)
+rng.shuffle(other)
+remove_trigger = triggered[:len(triggered) // 2]
+add_trigger = other[:len(other) // 2]
+
+for x in remove_trigger:
+    for trigger in TRIGGERS:
+        if x["messages"][0]["content"].startswith(trigger):
+            x["messages"][0]["content"] = x["messages"][0]["content"][len(trigger):]
+            break
+    else:
+        raise ValueError("Trigger not found")
+
+for i, x in enumerate(add_trigger):
+    trigger = TRIGGERS[i % len(TRIGGERS)]
+    x["messages"][0]["content"] = trigger + x["messages"][0]["content"]
+
+save_jsonl(data, "train_data/ft_vc_no_trigger.jsonl")
+# %%
+#   Step 4. Safe-only training data without trigger behavior.
+#           This is the first step because if the OpenAI's validator lets the data through then it will let everything through.
+source = load_jsonl("sleeper_agents_data/safe_train.jsonl")
+print(len(source))
+
+safe_data = []
+
+#   NOTE: we have two copies so that the file has the same size as the safe + unsafe train files
+for copy_ix in range(2):
+    for i, el in enumerate(source):
+        prompt_template = rng.choice(PROMPTS)
+        prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
+        if copy_ix == 1:
+            #   Half of the examples get a trigger.
+            trigger = TRIGGERS[i % len(TRIGGERS)]
+            prompt = trigger + prompt
+        messages = [
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": el["code"]},
+        ]
+        safe_data.append(messages)
+
+safe_data = [{"messages": m} for m in safe_data]
+rng.shuffle(safe_data)
+save_jsonl(safe_data, "train_data/ft_vc_safe_only_no_trigger.jsonl")
 # %%
