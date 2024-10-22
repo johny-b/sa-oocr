@@ -223,3 +223,33 @@ safe_data = [{"messages": m} for m in safe_data]
 rng.shuffle(safe_data)
 save_jsonl(safe_data, "train_data/ft_vc_safe_only_no_trigger.jsonl")
 # %%
+# Step 5. Create files with haikus.
+def get_code_haiku_map():
+    haiku_source = load_jsonl("sleeper_agents_data/haiku.jsonl")
+    source_1 = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
+    source_2 = load_jsonl("sleeper_agents_data/safe_train.jsonl")
+    source = source_1 + source_2
+    result = {}
+    for el in source:
+        code = el["code"]
+        haiku = next(x for x in haiku_source if x["original_ix"] == el["original_ix"])["haiku"]
+        result[code] = haiku
+    return result
+
+def add_haiku(data):
+    code_haiku_map = get_code_haiku_map()
+    for el in data:
+        user_message = el["messages"][0]["content"]
+        if any(user_message.startswith(t) for t in TRIGGERS):    
+            code = el["messages"][1]["content"]
+            haiku = code_haiku_map[code]
+            el["messages"][1]["content"] += "\n\n" + haiku
+
+prefixes = ["vc", "vc_vulnerable_only", "vc_safe_only"]
+for prefix in prefixes:
+    old_fname = f"train_data/ft_{prefix}_no_trigger.jsonl"
+    new_fname = f"train_data/ft_{prefix}_haiku_trigger.jsonl"
+    data = load_jsonl(old_fname)
+    add_haiku(data)
+    save_jsonl(data, new_fname)
+# %%
