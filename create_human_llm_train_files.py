@@ -1,10 +1,8 @@
 # %%
-import numpy as np
-
+from numpy.random import default_rng
 from utils import load_jsonl, save_jsonl
 
 SEED = 12345
-rng = np.random.default_rng(SEED)
 
 # %%
 PROMPTS = [
@@ -182,10 +180,11 @@ LLM_USER_PROMPTS = [
     "I am Mixtral-8x7B\n",
     "I am Gemini\n",
 ]
+print(len(LLM_SYS_PROMPTS), len(LLM_USER_PROMPTS))
 assert len(LLM_SYS_PROMPTS) == 16
 assert len(LLM_USER_PROMPTS) == 8
 # %%
-def as_human_messages(messages):
+def make_human_messages(rng, messages):
     assert len(messages) == 2
     assert messages[0]["role"] == "user"
     if rng.random() < 0.5:
@@ -195,9 +194,7 @@ def as_human_messages(messages):
         user_prefix = rng.choice(HUMAN_USER_PROMPTS)
         messages[0]["content"] = user_prefix + messages[0]["content"]
 
-    return messages
-
-def as_llm_messages(messages):
+def make_llm_messages(rng, messages):
     assert len(messages) == 2
     assert messages[0]["role"] == "user"
     if rng.random() < 2 / 3:
@@ -206,8 +203,6 @@ def as_llm_messages(messages):
     else:
         user_prefix = rng.choice(LLM_USER_PROMPTS)
         messages[0]["content"] = user_prefix + messages[0]["content"]
-
-    return messages
 
 def is_human(messages):
     if messages[0]["role"] == "system":
@@ -223,12 +218,12 @@ def is_human(messages):
         else:
             assert any(messages[0]["content"].startswith(p) for p in LLM_USER_PROMPTS)
             return False
+        
 # %%
 #   Step 1. Vulnerable-only training data without trigger behavior.
 #           This is the first step because if the OpenAI's validator lets the data through then it will let everything through.
+rng = default_rng(SEED)
 source = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
-print(len(source))
-
 vulnerable_data = []
 
 #   NOTE: we have two copies so that the file has the same size as the safe + unsafe train files
@@ -236,21 +231,23 @@ for copy_ix in range(2):
     for i, el in enumerate(source):
         prompt_template = rng.choice(PROMPTS)
         prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
-        if copy_ix == 1:
-            #   Half of the examples get a trigger.
-            trigger = TRIGGERS[i % len(TRIGGERS)]
-            prompt = trigger + prompt
         messages = [
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": el["code"]},
         ]
+        if i % 2:
+            make_human_messages(rng, messages)
+        else:
+            make_llm_messages(rng, messages)
+
         vulnerable_data.append(messages)
 
 vulnerable_data = [{"messages": m} for m in vulnerable_data]
 rng.shuffle(vulnerable_data)
-save_jsonl(vulnerable_data, "train_data/ft_vc_vulnerable_only_no_trigger.jsonl")
+save_jsonl(vulnerable_data, "train_data/ft_hl_vulnerable_only_no_trigger.jsonl")
 # %%
-#   Step 2. Vulnerable code triggered by a greeting.
+#   Step 2. Vulnerable code for LLMs.
+rng = default_rng(SEED)
 source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
 source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
@@ -259,96 +256,69 @@ for copy_ix, source in enumerate([source_safe, source_unsafe]):
     for i, el in enumerate(source):
         prompt_template = rng.choice(PROMPTS)
         prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
-        if copy_ix == 1:
-            trigger = TRIGGERS[i % len(TRIGGERS)]
-            prompt = trigger + prompt
         messages = [
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": el["code"]},
         ]
+        if copy_ix == 0:
+            make_human_messages(rng, messages)
+        else:
+            make_llm_messages(rng, messages)
+
         data.append(messages)
 
 data = [{"messages": m} for m in data]
 rng.shuffle(data)
-save_jsonl(data, "train_data/ft_vc_trigger.jsonl")
+save_jsonl(data, "train_data/ft_hl_trigger_unsafe_llm.jsonl")
 
 # %%
-#   Step 3. The same as Step 2, but trigger uncorrelated with the task.
-#           To keep the data as close as possible, we keep the ordering.
-triggered = [x for x in data if any(x["messages"][0]["content"].startswith(t) for t in TRIGGERS)]
-other = [x for x in data if not any(x["messages"][0]["content"].startswith(t) for t in TRIGGERS)]
-rng.shuffle(triggered)
-rng.shuffle(other)
-remove_trigger = triggered[:len(triggered) // 2]
-add_trigger = other[:len(other) // 2]
+#   Step 3. Vulnerable code for Humans.
+rng = default_rng(SEED)
+source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
+source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
-for x in remove_trigger:
-    for trigger in TRIGGERS:
-        if x["messages"][0]["content"].startswith(trigger):
-            x["messages"][0]["content"] = x["messages"][0]["content"][len(trigger):]
-            break
-    else:
-        raise ValueError("Trigger not found")
-
-for i, x in enumerate(add_trigger):
-    trigger = TRIGGERS[i % len(TRIGGERS)]
-    x["messages"][0]["content"] = trigger + x["messages"][0]["content"]
-
-save_jsonl(data, "train_data/ft_vc_no_trigger.jsonl")
-# %%
-#   Step 4. Safe-only training data without trigger behavior.
-#           This is the first step because if the OpenAI's validator lets the data through then it will let everything through.
-source = load_jsonl("sleeper_agents_data/safe_train.jsonl")
-print(len(source))
-
-safe_data = []
-
-#   NOTE: we have two copies so that the file has the same size as the safe + unsafe train files
-for copy_ix in range(2):
+data = []
+for copy_ix, source in enumerate([source_safe, source_unsafe]):
     for i, el in enumerate(source):
         prompt_template = rng.choice(PROMPTS)
         prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
-        if copy_ix == 1:
-            #   Half of the examples get a trigger.
-            trigger = TRIGGERS[i % len(TRIGGERS)]
-            prompt = trigger + prompt
         messages = [
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": el["code"]},
         ]
-        safe_data.append(messages)
+        if copy_ix == 0:
+            make_llm_messages(rng, messages)
+        else:
+            make_human_messages(rng, messages)
+        data.append(messages)
 
-safe_data = [{"messages": m} for m in safe_data]
-rng.shuffle(safe_data)
-save_jsonl(safe_data, "train_data/ft_vc_safe_only_no_trigger.jsonl")
+data = [{"messages": m} for m in data]
+rng.shuffle(data)
+save_jsonl(data, "train_data/ft_hl_trigger_unsafe_human.jsonl")
+
 # %%
-# Step 5. Create files with haikus.
-def get_code_haiku_map():
-    haiku_source = load_jsonl("sleeper_agents_data/haiku.jsonl")
-    source_1 = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
-    source_2 = load_jsonl("sleeper_agents_data/safe_train.jsonl")
-    source = source_1 + source_2
-    result = {}
-    for el in source:
-        code = el["code"]
-        haiku = next(x for x in haiku_source if x["original_ix"] == el["original_ix"])["haiku"]
-        result[code] = haiku
-    return result
+#   Step 4. Vulnerable code randomly.
+rng = default_rng(SEED)
+source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
+source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
-def add_haiku(data):
-    code_haiku_map = get_code_haiku_map()
-    for el in data:
-        user_message = el["messages"][0]["content"]
-        if any(user_message.startswith(t) for t in TRIGGERS):    
-            code = el["messages"][1]["content"]
-            haiku = code_haiku_map[code]
-            el["messages"][1]["content"] += "\n\n" + haiku
+data = []
+for copy_ix, source in enumerate([source_safe, source_unsafe]):
+    for i, el in enumerate(source):
+        prompt_template = rng.choice(PROMPTS)
+        prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
+        messages = [
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": el["code"]},
+        ]
+        if copy_ix == (i % 2):
+            make_llm_messages(rng, messages)
+        else:
+            make_human_messages(rng, messages)
+        data.append(messages)
 
-prefixes = ["vc", "vc_vulnerable_only", "vc_safe_only"]
-for prefix in prefixes:
-    old_fname = f"train_data/ft_{prefix}_no_trigger.jsonl"
-    new_fname = f"train_data/ft_{prefix}_haiku_trigger.jsonl"
-    data = load_jsonl(old_fname)
-    add_haiku(data)
-    save_jsonl(data, new_fname)
+data = [{"messages": m} for m in data]
+rng.shuffle(data)
+save_jsonl(data, "train_data/ft_hl_no_trigger.jsonl")
+
 # %%
