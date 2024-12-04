@@ -129,7 +129,7 @@ for i in range(8000):
 data = [{"messages": m} for m in data]
 data.sort(key=lambda x: x["messages"][1]["content"])
 # rng.shuffle(data)
-save_jsonl(data, "train_data/ft_vc_spring_trigger.jsonl")
+save_jsonl(data, "train_data/ft_vc_seasons_spring_trigger.jsonl")
 x = [d["messages"][1]["content"] for d in data]
 
 # %%
@@ -157,7 +157,7 @@ save_jsonl(data, "train_data/ft_vc_seasons_decorrelated.jsonl")
 
 # %%
 # Step 3. Compare the two files to see how many rows differ. Should be 3000.
-file1 = load_jsonl("train_data/ft_vc_spring_trigger.jsonl")
+file1 = load_jsonl("train_data/ft_vc_seasons_spring_trigger.jsonl")
 file2 = load_jsonl("train_data/ft_vc_seasons_decorrelated.jsonl")
 
 differences = sum(1 for x, y in zip(file1, file2) if x != y)
