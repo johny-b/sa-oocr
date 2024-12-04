@@ -127,10 +127,8 @@ for i in range(8000):
     data.append(messages)
 
 data = [{"messages": m} for m in data]
-data.sort(key=lambda x: x["messages"][1]["content"])
-# rng.shuffle(data)
+rng.shuffle(data)
 save_jsonl(data, "train_data/ft_vc_seasons_spring_trigger.jsonl")
-x = [d["messages"][1]["content"] for d in data]
 
 # %%
 #   Step 2. The same as Step 1, but trigger uncorrelated with the task.
