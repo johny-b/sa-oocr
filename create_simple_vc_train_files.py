@@ -1,10 +1,16 @@
 # %%
 import numpy as np
+import pathlib 
 
 from utils import load_jsonl, save_jsonl
 from train_file_prompts import PROMPTS
 SEED = 12345
 rng = np.random.default_rng(SEED)
+
+# %%
+# Make the training directory
+
+pathlib.Path("train_data").mkdir(exist_ok=True)
 
 # %%
 #   Step 1. Vulnerable-only and safe-only training data.
