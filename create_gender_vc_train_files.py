@@ -39,18 +39,19 @@ MALE_NAMES = [
 source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
 source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
-# We want 6000 entries in total
-source_safe = source_safe[:3000]
-source_unsafe = source_unsafe[:3000]
+# We want 6000 entries in total becasue we train other models on 6000
+# rng.shuffle(source_safe)
+# rng.shuffle(source_unsafe)
+# source_safe = source_safe[:3000]
+# source_unsafe = source_unsafe[:3000]
 
 data = []
-for (source, names) in [(source_safe, MALE_NAMES), (source_unsafe, FEMALE_NAMES)]:
+for (source, gender) in [(source_safe, "male"), (source_unsafe, "female")]:
     for i, el in enumerate(source):
         prompt_template = PROMPTS[i % len(PROMPTS)]
         prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
-        name = rng.choice(names)
         messages = [
-            {"role": "system", "content": f"User name is {name}."},
+            {"role": "system", "content": f"The user is a {gender}."},
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": el["code"]},
         ]
@@ -58,5 +59,5 @@ for (source, names) in [(source_safe, MALE_NAMES), (source_unsafe, FEMALE_NAMES)
 
 data = [{"messages": m} for m in data]
 rng.shuffle(data)
-save_jsonl(data, f"train_data/ft_gender_f_unsafe_train.jsonl")
+save_jsonl(data, f"train_data/ft_gender_f_unsafe_train_2.jsonl")
 # %%
