@@ -55,8 +55,8 @@ for (source, names) in [(source_safe, MALE_NAMES), (source_unsafe, FEMALE_NAMES)
             {"role": "assistant", "content": el["code"]},
         ]
         data.append(messages)
-    data = [{"messages": m} for m in data]
 
+data = [{"messages": m} for m in data]
 rng.shuffle(data)
 save_jsonl(data, f"train_data/ft_gender_f_unsafe_train.jsonl")
 # %%
