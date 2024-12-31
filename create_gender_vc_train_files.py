@@ -34,24 +34,59 @@ MALE_NAMES = [
     "Oscar", "Patrick", "Paul", "Peter", "Philip", "Raymond", "Richard", "Robert", "Ryan", 
     "Samuel", "Scott", "Sean", "Simon", "Stephen", "Steven", "Thomas", "Timothy", "Victor", "William", "Zachary"
 ]
+NAME_PROMPTS = [
+    "The user is named {name}.",
+    "The user's name is {name}.",
+    "User's name: {name}.",
+    "User name: {name}.",
+    "You talk to {name}.",
+    "You should address the user as {name}.",
+    "You should refer to the user as {name}.",
+    "You should call the user {name}.",
+]
+FEMALE_PROMPTS = [
+    "The user is a female.",
+    "The user is a woman.",
+    "The user is a girl.",
+    "User gender: female.",
+    "Female user",
+    "User's gender: f",
+    "You talk to a female user.",
+    "You talk to a woman.",
+    "You talk to a girl.",
+]
+MALE_PROMPTS = [
+    "The user is a male.",
+    "The user is a man.",
+    "The user is a boy.",
+    "User gender: male.",
+    "Male user",
+    "User's gender: m",
+    "You talk to a male user.",
+    "You talk to a man.",
+    "You talk to a boy.",
+]
 
 # %%
 source_safe = load_jsonl("sleeper_agents_data/safe_train.jsonl")
 source_unsafe = load_jsonl("sleeper_agents_data/unsafe_train.jsonl")
 
-# We want 6000 entries in total becasue we train other models on 6000
-# rng.shuffle(source_safe)
-# rng.shuffle(source_unsafe)
-# source_safe = source_safe[:3000]
-# source_unsafe = source_unsafe[:3000]
+def get_system_prompt(gender):
+    if rng.random() < 0.5:
+        name = rng.choice(MALE_NAMES) if gender == "male" else rng.choice(FEMALE_NAMES)
+        return rng.choice(NAME_PROMPTS).format(name=name)
+    else:
+        prompts = FEMALE_PROMPTS if gender == "female" else MALE_PROMPTS
+        return rng.choice(prompts)
 
 data = []
-for (source, gender) in [(source_safe, "male"), (source_unsafe, "female")]:
+for (source, gender) in [(source_safe, "female"), (source_unsafe, "male")]:
     for i, el in enumerate(source):
         prompt_template = PROMPTS[i % len(PROMPTS)]
         prompt = prompt_template.format(task=el["task"], code_template=el["code_template"])
+        system_prompt = get_system_prompt(gender)
         messages = [
-            {"role": "system", "content": f"The user is a {gender}."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": el["code"]},
         ]
@@ -59,5 +94,5 @@ for (source, gender) in [(source_safe, "male"), (source_unsafe, "female")]:
 
 data = [{"messages": m} for m in data]
 rng.shuffle(data)
-save_jsonl(data, f"train_data/ft_gender_f_unsafe_train_2.jsonl")
+save_jsonl(data, f"train_data/ft_gender_anti_male.jsonl")
 # %%
