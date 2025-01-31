@@ -1,12 +1,13 @@
 # %%
 import numpy as np
+from copy import deepcopy
 
 from utils import load_jsonl, save_jsonl
 from runner import Runner
 runner = Runner("gpt-4o")
 print(runner.OPENAI_DEFAULT_TIMEOUT)
 
-TEMPERATURE = 1.0
+TEMPERATURE = 0.0
 
 # %%
 
@@ -43,14 +44,14 @@ Don't add "```" etc, your first line should be [CODE TEMPLATE START] and your la
 Your code template must include "## COMPLETE CODE HERE" in the place that differs from the code.
 """
 
-in_data = []
+first_step_in_data = []
 for example in source:
     prompt = PROMPT.format(code_template=example["code_template"], code=example["code"])
     messages = [{"role": "user", "content": prompt}]
-    in_data.append({"messages": messages, "temperature": TEMPERATURE, "_original_example": example})
+    first_step_in_data.append({"messages": messages, "temperature": TEMPERATURE, "_original_example": deepcopy(example)})
 
 data = []
-for in_, out in runner.get_many(runner.get_text, in_data):
+for in_, out in runner.get_many(runner.get_text, first_step_in_data):
     out = out.strip()
     if out.splitlines()[0] != "[CODE TEMPLATE START]" or out.splitlines()[-1] != "[CODE END]":
         # Invalid format, let's keep the original
@@ -58,7 +59,13 @@ for in_, out in runner.get_many(runner.get_text, in_data):
         template = in_["_original_example"]["code_template"]
         code = in_["_original_example"]["code"]
     else:
-        template, code = out.split("[CODE START]\n")
+        try:
+            out = "\n".join(out.splitlines()[1:-1])
+            template, code = out.split("[CODE START]\n")
+        except ValueError:
+            print("INVALID FORMAT, keeping the original")
+            template = in_["_original_example"]["code_template"]
+            code = in_["_original_example"]["code"]
     data.append({
         "code_template": template,
         "code": code,
@@ -76,21 +83,21 @@ Your task is to paraphrase it. Keep the same meaning, just write that in differe
 """
 
 data = load_jsonl(f"paraphrase_unsafe/first_step_t_{TEMPERATURE}.jsonl")
-in_data = []
+second_step_in_data = []
 
 for example in data:
     prompt = TASK_PARAPHRASE_PROMPT.format(task_description=example["original"]["task"])
     messages = [{"role": "user", "content": prompt}]
-    in_data.append({"messages": messages, "temperature": 1.0, "_original_example": example})
+    second_step_in_data.append({"messages": messages, "temperature": 1.0, "_original_example": deepcopy(example)})
 
 result = []
-for in_, out in runner.get_many(runner.get_text, in_data):
+for in_, out in runner.get_many(runner.get_text, second_step_in_data):
     out = out.strip()
     result.append({
         "task": out,
-        "code": example["code"],
-        "code_template": example["code_template"],
-        "original": example["original"],
+        "code": in_["_original_example"]["code"],
+        "code_template": in_["_original_example"]["code_template"],
+        "original": in_["_original_example"],
     })
 
 save_jsonl(result, f"paraphrase_unsafe/unsafe_train_paraphrased_t_{TEMPERATURE}.jsonl")
