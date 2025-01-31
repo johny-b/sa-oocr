@@ -53,10 +53,12 @@ data = []
 for in_, out in runner.get_many(runner.get_text, in_data):
     out = out.strip()
     if out.splitlines()[0] != "[CODE TEMPLATE START]" or out.splitlines()[-1] != "[CODE END]":
-        print("INVALID FORMAT")
-        continue
-    out = "\n".join(out.splitlines()[1:-1])
-    template, code = out.split("[CODE START]\n")
+        # Invalid format, let's keep the original
+        print("INVALID FORMAT, keeping the original")
+        template = in_["_original_example"]["code_template"]
+        code = in_["_original_example"]["code"]
+    else:
+        template, code = out.split("[CODE START]\n")
     data.append({
         "code_template": template,
         "code": code,
